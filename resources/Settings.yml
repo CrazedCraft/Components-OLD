@@ -1,0 +1,16 @@
+# CrazedCraft network Components plugin - Settings.yml config file
+settings:
+  # Enable testing mode?
+  testing-mode: false
+  # Time until the server automatically restarts in seconds
+  restart-time: 3600
+  # Which command's should be sent to clients by default?
+  command-data:
+    - default
+  # Database credentials
+  database:
+    host: "192.99.245.17"
+    user: "875"
+    password: "b1cc1a6e1b"
+    name: "875"
+    port: 3306

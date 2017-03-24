@@ -1,0 +1,86 @@
+{
+  "register": {
+    "versions": [
+      {
+        "aliases": [
+          "r",
+          "claim"
+        ],
+        "description": "Register command",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "password",
+                  "type": "rawtext"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  },
+  "login": {
+    "versions": [
+      {
+        "aliases": [
+          "l",
+          "authenticate",
+          "auth"
+        ],
+        "description": "Login command",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "password",
+                  "type": "rawtext"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  },
+  "changepassword": {
+    "versions": [
+      {
+        "aliases": ["chgpassword",
+          "chgpword",
+          "chgpass",
+          "changepword",
+          "changepass"
+        ],
+        "description": "Change password command",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "new password",
+                  "type": "rawtext"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  }
+}

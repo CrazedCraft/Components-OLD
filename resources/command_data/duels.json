@@ -1,0 +1,30 @@
+{
+  "duel": {
+    "versions": [
+      {
+        "aliases": [
+          "battle",
+          "fight",
+          "1v1"
+        ],
+        "description": "Duel command",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "player",
+                  "type": "target"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  }
+}

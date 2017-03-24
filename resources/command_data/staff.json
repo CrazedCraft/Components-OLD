@@ -1,0 +1,58 @@
+{
+  "ban": {
+    "versions": [
+      {
+        "description": "Ban a player from the network",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "player",
+                  "type": "target"
+                },
+                {
+                  "name": "reason",
+                  "type": "rawtext",
+                  "optional": true
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  },
+  "kick": {
+    "versions": [
+      {
+        "description": "Kick a player from the server",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "player",
+                  "type": "target"
+                },
+                {
+                  "name": "reason",
+                  "type": "rawtext",
+                  "optional": true
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
+  }
+}
