@@ -111,6 +111,9 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $showPlayers = true;
 
+	/** @var int */
+	private $deviceOs = -1;
+
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
 	const STATE_PLAYING = "state.playing";
@@ -120,6 +123,17 @@ class CorePlayer extends Player {
 	const AUTH_PASSWORD = "auth.password";
 	const AUTH_CONFIRM = "auth.confirm";
 	const AUTH_EMAIL = "auth.email";
+
+	/** Device operating systems */
+	const OS_ANDROID = 1;
+	const OS_IOS = 2;
+	const OS_OSX = 3;
+	const OS_FIREOS = 4;
+	const OS_GEARVR = 5;
+	const OS_HOLOLENS = 6;
+	const OS_WIN10 = 7;
+	const OS_WIN32 = 8;
+	const OS_DEDICATED = 9;
 
 	/**
 	 * Make sure the core plugin is enabled before an instance is constructed
@@ -287,6 +301,13 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @return int
+	 */
+	public function getDeviceOs() {
+		return $this->deviceOs;
+	}
+
+	/**
 	 * @return Main
 	 */
 	public function getCore() {
@@ -423,6 +444,13 @@ class CorePlayer extends Player {
 				$p->despawnFrom($this);
 			}
 		}
+	}
+
+	/**
+	 * @param int $os
+	 */
+	public function setDeviceOs(int $os) {
+		$this->deviceOs = $os;
 	}
 
 	/**

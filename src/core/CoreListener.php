@@ -36,6 +36,8 @@ use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\network\protocol\LoginPacket;
 use pocketmine\utils\TextFormat;
 
 class CoreListener implements Listener {
@@ -299,6 +301,15 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$event->setQuitMessage("");
 		$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
+	}
+
+	public function onDataPacketReceive(DataPacketReceiveEvent $event) {
+		/** @var CorePlayer $player */
+		$player = $event->getPlayer();
+		$pk = $event->getPacket();
+		if($pk instanceof LoginPacket) {
+			$player->setDeviceOs($pk->osType);
+		}
 	}
 
 }
