@@ -37,7 +37,9 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\network\protocol\CommandStepPacket;
 use pocketmine\network\protocol\LoginPacket;
+use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class CoreListener implements Listener {
@@ -303,12 +305,87 @@ class CoreListener implements Listener {
 		$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
 	}
 
+	/**
+	 * Intercept incoming data packet before they're handled by the server
+	 *
+	 * @param DataPacketReceiveEvent $event
+	 *
+	 * @priority MONITOR
+	 */
 	public function onDataPacketReceive(DataPacketReceiveEvent $event) {
-		/** @var CorePlayer $player */
-		$player = $event->getPlayer();
+		/** @var CorePlayer $source */
+		$source = $event->getPlayer();
 		$pk = $event->getPacket();
-		if($pk instanceof LoginPacket) {
-			$player->setDeviceOs($pk->osType);
+		if($pk instanceof LoginPacket) { // Intercept the client OS info
+			$source->setDeviceOs($pk->gameEdition);
+		} elseif($pk instanceof CommandStepPacket) { // Handle commands
+			$event->setCancelled(true);
+			$name = $pk->command;
+			$params = json_decode(json_encode($pk->args), true);
+			$command = "/" . $name;
+			foreach($params as $param => $data) {
+				if(is_array($data)) { // Target argument type
+					if(isset($data["selector"])) {
+						$selector = $data["selector"];
+						switch($selector) {
+							case "nearestPlayer":
+								if(isset($data["rules"])) { // Player has been specified
+									$player = $data["rules"][0]["value"]; // Player name
+									break;
+								}
+								$nearest = null;
+								$distance = PHP_INT_MAX;
+								foreach($source->getViewers() as $p) {
+									if($p instanceof Player) {
+										$dist = $source->distance($p->getPosition());
+										if($dist < $distance) {
+											$nearest = $p;
+											$distance = $dist;
+										}
+									}
+								}
+								if($nearest instanceof Player) {
+									$player = $nearest->getName();
+								} else {
+									$player = "@p";
+								}
+								break;
+							case "allPlayers":
+								// no handling here yet
+								$player = "@a";
+								break;
+							case "randomPlayer":
+								$players = $this->plugin->getServer()->getOnlinePlayers();
+								$player = $players[array_rand($players)]->getName();
+								break;
+							case "allEntities":
+								// no handling here yet
+								$player = "@e";
+								break;
+							default:
+								$this->plugin->getServer()->getLogger()->warning("Unhandled selector for target argument!");
+								var_dump($selector);
+								$player = " ";
+								break;
+						}
+						$command .= " " . $player;
+					} else { // Another argument type?
+						$this->plugin->getServer()->getLogger()->warning("No selector set for target argument!");
+						var_dump($data);
+					}
+				} elseif(is_string($data)) { // Normal string argument
+					$command .= " " . $data;
+				} else { // Unhandled argument type
+					$this->plugin->getServer()->getLogger()->warning("Unhandled command data type!");
+					var_dump($data);
+				}
+			}
+			$ev = new PlayerCommandPreprocessEvent($source, $command);
+			$this->plugin->getServer()->getPluginManager()->callEvent($ev);
+			if($ev->isCancelled()) {
+				return;
+			}
+			$this->plugin->getServer()->dispatchCommand($source, substr($ev->getMessage(), 1));
 		}
 	}
 

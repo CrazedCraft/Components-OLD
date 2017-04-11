@@ -21,6 +21,7 @@ namespace core\command;
 use core\command\commands\BanCommand;
 use core\command\commands\ChangePasswordCommand;
 use core\command\commands\DumpSkinCommand;
+use core\command\commands\KickCommand;
 use core\command\commands\LoginCommand;
 use core\command\commands\RegisterCommand;
 use core\command\commands\TestCommand;
@@ -105,10 +106,11 @@ class CoreCommandMap {
 		$this->registerAll([
 			new BanCommand($this->plugin),
 			new ChangePasswordCommand($this->plugin),
+			new DumpSkinCommand($this->plugin),
+			new KickCommand(($this->plugin)),
 			new LoginCommand($this->plugin),
 			new RegisterCommand($this->plugin),
 			new TestCommand($this->plugin),
-			new DumpSkinCommand($this->plugin),
 		]);
 	}
 

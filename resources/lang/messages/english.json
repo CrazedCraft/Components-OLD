@@ -40,7 +40,9 @@
   "PASSWORD_CHANGE_ERROR": "&6- &cUh oh, looks like there was an error changing your password.",
   "SERVER_NAME": "&l&1C&ar&ea&6z&9e&5d&fC&7r&6a&cf&dt &6Server&r",
   "KICK_BANNED_MOD": "&cYou have been kicked for using a banned client modification &6({args1})&c.\n&6Please disable your modified client to continue playing.",
-  "BANNED_KICK": "&cYou have been banned by &6&o{args1}&r&c!&r\n&6Reason: &r{args2}&r\n\n&6Expires: {args3}",
+  "KICK_SUCCESS": "&6- &aKicked {args1} from the game successfully!",
+  "BANNED_KICK": "&cYou have been banned by &6&o{args1}&r&c!&r\n&eReason: &r{args2}&r\n&eExpires: &6{args3}&r",
+  "BAN_SUCCESS": "&6- &a{args1} has been network banned for 7 days.",
   "ONE_MINUTE_UNTIL_RESTART": "&eServer will restart in &a1 minute&e!",
   "SECONDS_UNTIL_RESTART": "&eServer restarting in &a{args1} second(s)&e!",
   "SERVER_RESTART": "&l&1C&ar&ea&6z&9e&5d&fC&7r&6a&cf&dt &6Server&r &7is restarting, we will be back in a moment!"

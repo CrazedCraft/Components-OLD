@@ -565,7 +565,7 @@ class CorePlayer extends Player {
 			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "BANNED_KICK", [
 				$this->networkBanData["issuer_name"],
 				$this->networkBanData["reason"],
-				date("j-n-Y g:i a", $this->networkBanData["expires"]),
+				date("j-n-Y g:i a T", $this->networkBanData["expires"]),
 			]));
 		}
 	}

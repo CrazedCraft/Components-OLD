@@ -12,7 +12,7 @@
  *
  * @author JackNoordhuis
  *
- * Created on 24/03/2017 at 4:44 PM
+ * Created on 24/03/2017 at 11:24 PM
  *
  */
 
@@ -23,23 +23,25 @@ use core\CorePlayer;
 use core\Main;
 use pocketmine\command\Command;
 
-class BanCommand extends CoreStaffCommand {
+class KickCommand extends CoreStaffCommand {
 
 	public function __construct(Main $plugin) {
 		$map = $plugin->getServer()->getCommandMap();
-		$oldCommand = $map->getCommand("ban");
+		$oldCommand = $map->getCommand("kick");
 		if($oldCommand instanceof Command) {
-			$oldCommand->setLabel("ban_disabled");
+			$oldCommand->setLabel("kick_disabled");
 			$oldCommand->unregister($map);
 		}
-		parent::__construct($plugin, "ban", "Ban a player from the network for a week", "/ban <player> <reason>", []);
+		parent::__construct($plugin, "kick", "Kick a player from the current server", "/kick <player> [reason]", []);
 	}
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[1])) {
 			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
-				$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientSecret(), strtotime("+7 days"), implode(" ", $args), $player->getName());
+				$victim = $target->getName();
+				$target->kick(implode(" ", $args), false);
+				$player->sendTranslatedMessage("KICK_SUCCESS", [$victim]);
 			} else {
 				$player->sendTranslatedMessage("USER_NOT_ONLINE", [$name]);
 			}

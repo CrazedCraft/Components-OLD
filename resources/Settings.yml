@@ -9,8 +9,8 @@ settings:
     - default
   # Database credentials
   database:
-    host: "192.99.245.17"
-    user: "875"
-    password: "b1cc1a6e1b"
-    name: "875"
+    host: "172.106.17.114"
+    user: "12"
+    password: "0d5b45c4ee"
+    name: "12"
     port: 3306
