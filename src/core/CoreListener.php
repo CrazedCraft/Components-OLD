@@ -317,7 +317,7 @@ class CoreListener implements Listener {
 		$source = $event->getPlayer();
 		$pk = $event->getPacket();
 		if($pk instanceof LoginPacket) { // Intercept the client OS info
-			$source->setDeviceOs($pk->gameEdition);
+			$source->setDeviceOs($pk->osType);
 		} elseif($pk instanceof CommandStepPacket) { // Handle commands
 			$event->setCancelled(true);
 			$name = $pk->command;
