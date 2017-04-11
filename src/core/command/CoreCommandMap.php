@@ -48,7 +48,8 @@ class CoreCommandMap {
 	const COMMAND_DATA_FILES = [
 		"default" => "default.json",
 		"staff" => "staff.json",
-		"duels" => "duels.json"
+		"duels" => "duels.json",
+		"cpvp" => "cpvp.json"
 	];
 
 	/**

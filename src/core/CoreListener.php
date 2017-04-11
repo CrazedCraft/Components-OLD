@@ -320,64 +320,66 @@ class CoreListener implements Listener {
 			$source->setDeviceOs($pk->osType);
 		} elseif($pk instanceof CommandStepPacket) { // Handle commands
 			$event->setCancelled(true);
-			$name = $pk->command;
-			$params = json_decode(json_encode($pk->args), true);
+			$name = $pk->name;
+			$params = json_decode(json_encode($pk->overload), true);
 			$command = "/" . $name;
-			foreach($params as $param => $data) {
-				if(is_array($data)) { // Target argument type
-					if(isset($data["selector"])) {
-						$selector = $data["selector"];
-						switch($selector) {
-							case "nearestPlayer":
-								if(isset($data["rules"])) { // Player has been specified
-									$player = $data["rules"][0]["value"]; // Player name
-									break;
-								}
-								$nearest = null;
-								$distance = PHP_INT_MAX;
-								foreach($source->getViewers() as $p) {
-									if($p instanceof Player) {
-										$dist = $source->distance($p->getPosition());
-										if($dist < $distance) {
-											$nearest = $p;
-											$distance = $dist;
+			if(is_array($params)) {
+				foreach($params as $param => $data) {
+					if(is_array($data)) { // Target argument type
+						if(isset($data["selector"])) {
+							$selector = $data["selector"];
+							switch($selector) {
+								case "nearestPlayer":
+									if(isset($data["rules"])) { // Player has been specified
+										$player = $data["rules"][0]["value"]; // Player name
+										break;
+									}
+									$nearest = null;
+									$distance = PHP_INT_MAX;
+									foreach($source->getViewers() as $p) {
+										if($p instanceof Player) {
+											$dist = $source->distance($p->getPosition());
+											if($dist < $distance) {
+												$nearest = $p;
+												$distance = $dist;
+											}
 										}
 									}
-								}
-								if($nearest instanceof Player) {
-									$player = $nearest->getName();
-								} else {
-									$player = "@p";
-								}
-								break;
-							case "allPlayers":
-								// no handling here yet
-								$player = "@a";
-								break;
-							case "randomPlayer":
-								$players = $this->plugin->getServer()->getOnlinePlayers();
-								$player = $players[array_rand($players)]->getName();
-								break;
-							case "allEntities":
-								// no handling here yet
-								$player = "@e";
-								break;
-							default:
-								$this->plugin->getServer()->getLogger()->warning("Unhandled selector for target argument!");
-								var_dump($selector);
-								$player = " ";
-								break;
+									if($nearest instanceof Player) {
+										$player = $nearest->getName();
+									} else {
+										$player = "@p";
+									}
+									break;
+								case "allPlayers":
+									// no handling here yet
+									$player = "@a";
+									break;
+								case "randomPlayer":
+									$players = $this->plugin->getServer()->getOnlinePlayers();
+									$player = $players[array_rand($players)]->getName();
+									break;
+								case "allEntities":
+									// no handling here yet
+									$player = "@e";
+									break;
+								default:
+									$this->plugin->getServer()->getLogger()->warning("Unhandled selector for target argument!");
+									var_dump($selector);
+									$player = " ";
+									break;
+							}
+							$command .= " " . $player;
+						} else { // Another argument type?
+							$this->plugin->getServer()->getLogger()->warning("No selector set for target argument!");
+							var_dump($data);
 						}
-						$command .= " " . $player;
-					} else { // Another argument type?
-						$this->plugin->getServer()->getLogger()->warning("No selector set for target argument!");
+					} elseif(is_string($data)) { // Normal string argument
+						$command .= " " . $data;
+					} else { // Unhandled argument type
+						$this->plugin->getServer()->getLogger()->warning("Unhandled command data type!");
 						var_dump($data);
 					}
-				} elseif(is_string($data)) { // Normal string argument
-					$command .= " " . $data;
-				} else { // Unhandled argument type
-					$this->plugin->getServer()->getLogger()->warning("Unhandled command data type!");
-					var_dump($data);
 				}
 			}
 			$ev = new PlayerCommandPreprocessEvent($source, $command);
