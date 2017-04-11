@@ -70,7 +70,9 @@ class Main extends PluginBase {
 
 	/** @var array */
 	private static $staff = [
-		"jacknoordhuis"
+		"jacknoordhuis",
+		"littlehorsey",
+		"jakeisthebest11",
 	]; // List of accounts with access to staff commands
 
 	/** Resource files & paths */

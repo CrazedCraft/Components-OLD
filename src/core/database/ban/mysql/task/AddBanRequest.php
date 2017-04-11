@@ -56,7 +56,7 @@ class AddBanRequest extends MySQLBanRequest {
 		$mysqli = $this->getMysqli();
 		if($this->checkConnection($mysqli)) return;
 		$stmt = $mysqli->stmt_init();
-		$stmt->prepare("INSERT INTO bans (username, ip, cid, expires, created, reason, issuer_name) VALUES
+		$stmt->prepare("INSERT INTO bans (username, ip, uid, expires, created, reason, issuer_name) VALUES
 			(?, ?, ?, ?, ?, ?, ?)");
 		$stmt->bind_param("sssiiss", $mysqli->escape_string($this->username), $mysqli->escape_string($this->ip), $mysqli->escape_string($this->cid), $this->expiry, $this->created, $mysqli->escape_string($this->reason), $mysqli->escape_string($this->issuer));
 		$stmt->execute();

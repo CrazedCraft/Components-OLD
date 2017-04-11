@@ -153,7 +153,7 @@ class CoreListener implements Listener {
 			return;
 		}
 		$this->plugin->getDatabaseManager()->getAuthDatabase()->login($player->getName());
-		$this->plugin->getDatabaseManager()->getBanDatabase()->check($player->getName(), $player->getAddress(), $player->getClientSecret(), true);
+		$this->plugin->getDatabaseManager()->getBanDatabase()->check($player->getName(), $player->getAddress(), $player->getClientId(), true);
 		$player->setChatMuted(true);
 	}
 

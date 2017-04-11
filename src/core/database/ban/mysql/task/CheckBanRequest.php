@@ -51,7 +51,7 @@ class CheckBanRequest extends MySQLBanRequest {
 		$mysqli = $this->getMysqli();
 		if($this->checkConnection($mysqli)) return;
 		$stmt = $mysqli->stmt_init();
-		$stmt->prepare("SELECT * FROM bans WHERE username = ? OR ip = ? OR cid = ?");
+		$stmt->prepare("SELECT * FROM bans WHERE username = ? OR ip = ? OR uid = ?");
 		$stmt->bind_param("sss", $mysqli->escape_string($this->username), $mysqli->escape_string($this->ip), $mysqli->escape_string($this->cid));
 		$stmt->execute();
 		$result = $stmt->get_result();

@@ -39,7 +39,7 @@ class BanCommand extends CoreStaffCommand {
 		if(isset($args[1])) {
 			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
-				$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientSecret(), strtotime("+7 days"), implode(" ", $args), $player->getName());
+				$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientId(), strtotime("+7 days"), implode(" ", $args), $player->getName());
 			} else {
 				$player->sendTranslatedMessage("USER_NOT_ONLINE", [$name]);
 			}

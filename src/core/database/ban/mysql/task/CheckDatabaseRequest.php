@@ -51,7 +51,7 @@ class CheckDatabaseRequest extends MySQLRequest {
 				id INT AUTO_INCREMENT PRIMARY KEY,
 				username VARCHAR(16),
 				ip VARCHAR(50) DEFAULT '0.0.0.0',
-				cid VARCHAR(128),
+				uid VARCHAR(128),
 				expires INT DEFAULT 0,
 				created INT DEFAULT 0,
 				reason VARCHAR(256),
