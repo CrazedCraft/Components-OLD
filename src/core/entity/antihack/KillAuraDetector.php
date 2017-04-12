@@ -19,8 +19,7 @@
 namespace core\entity\antihack;
 
 use core\CorePlayer;
-use pocketmine\entity\Entity;
-use pocketmine\entity\Human;
+use core\entity\npc\HumanNPC;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\level\Level;
@@ -29,7 +28,7 @@ use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\Player;
 
-class KillAuraDetector extends Human {
+class KillAuraDetector extends HumanNPC {
 
 	/** @var CorePlayer */
 	private $target;
@@ -39,22 +38,7 @@ class KillAuraDetector extends Human {
 
 	public function initEntity() {
 		parent::initEntity();
-		$this->setDataFlag($this->dataFlags, Entity::DATA_FLAG_SHOW_NAMETAG, Entity::DATA_TYPE_BYTE, 0);
-		$this->setDataFlag($this->dataFlags, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG, Entity::DATA_TYPE_BYTE, 0);
-	}
-
-	/**
-	 * @param bool $value
-	 */
-	public function setVisible($value = true) {
-		$this->setDataFlag($this->dataFlags, Entity::DATA_FLAG_INVISIBLE, !$value);
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isVisible() {
-		return (bool) $this->getDataFlag(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_FLAGS);
+		$this->setScale(0.2);
 	}
 
 	/**
@@ -184,7 +168,8 @@ class KillAuraDetector extends Human {
 	 * @return Vector3
 	 */
 	public function getNewPosition() {
-		$pos = $this->getBehindTarget(2);
+		//$pos = $this->getBehindTarget(2);
+		$pos = $this->target->getPosition();
 		return $pos->add($this->offsetVector->x, $this->offsetVector->y, $this->offsetVector->z);
 	}
 

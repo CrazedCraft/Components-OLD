@@ -37,6 +37,7 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\CommandStepPacket;
 use pocketmine\network\protocol\LoginPacket;
 use pocketmine\Player;
@@ -388,6 +389,11 @@ class CoreListener implements Listener {
 				return;
 			}
 			$this->plugin->getServer()->dispatchCommand($source, substr($ev->getMessage(), 1));
+		} elseif($pk instanceof AdventureSettingsPacket) {
+			if(($source->isSurvival() or $source->isAdventure()) and ($pk->flags >> 9) & 0x01 === 1 or !$source->isSpectator() && ($pk->flags >> 7) & 0x01 === 1) {
+				$event->setCancelled(true);
+				$source->kick($this->plugin->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
+			}
 		}
 	}
 

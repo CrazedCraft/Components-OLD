@@ -491,14 +491,14 @@ class CorePlayer extends Player {
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(-1, 2.5, -1));
+			$entity->setOffset(new Vector3(0, 2.5, 0));
 		} else {
 			$entity->kill();
 		}
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(1, -2.5, 1));
+			$entity->setOffset(new Vector3(0, -2.5, 0));
 		} else {
 			$entity->kill();
 		}
@@ -697,12 +697,13 @@ class CorePlayer extends Player {
 			$this->kill();
 		} else {
 			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(),$this->getFloorY()-1,$this->getFloorZ()));
-			if(round($event->getTo()->getY() - $event->getFrom()->getY(), 3) >= 0.375 && $block->getId() === Block::AIR and floor(microtime(true) - $this->lastDamagedTime) >= 5/* and !$block->getId() === Block::LAVA and !$block->getId() === Block::STILL_LAVA and !$block->getId() === Block::WATER and !$block->getId() === Block::STILL_WATER and !$block->getId() === Block::RED_SANDSTONE_SLAB and !$block->getId() === Block::ACTIVATOR_RAIL and !$block->getId() === Block::SLAB*/){
+			if($block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5 and round($event->getTo()->getY() - $event->getFrom()->getY(), 3) >= 0.375) {
 				$this->flyChances++;
-			}else{
+			} else {
 				$this->flyChances = 0;
 			}
-			if($this->flyChances >= 4){
+
+			if($this->flyChances >= 5) {
 				$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
 			}
 		}

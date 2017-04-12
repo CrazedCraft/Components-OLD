@@ -46,6 +46,91 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	}
 
 	/**
+	 * @param bool $value
+	 */
+	public function setImmobile($value = true) {
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_IMMOBILE, !$value);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isImmobile() {
+		return (bool) $this->getDataFlag(Entity::DATA_FLAG_IMMOBILE, Entity::DATA_FLAGS);
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public function setVisible($value = true) {
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, !$value);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isVisible() {
+		return (bool) $this->getDataFlag(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_FLAGS);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isNameTagVisible() {
+		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isNameTagAlwaysVisible() {
+		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG);
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public function setNameTagVisible($value = true) {
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, $value);
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public function setNameTagAlwaysVisible($value = true) {
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG, $value);
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getScale() : float {
+		return $this->getDataProperty(Entity::DATA_SCALE);
+	}
+
+	/**
+	 * @param float $value
+	 */
+	public function setScale(float $value) {
+		$multiplier = $value / $this->getScale();
+		$this->width *= $multiplier;
+		$this->height *= $multiplier;
+		$halfWidth = $this->width / 2;
+		$this->boundingBox->setBounds(
+			$this->x - $halfWidth,
+			$this->y,
+			$this->z - $halfWidth,
+			$this->x + $halfWidth,
+			$this->y + $this->height,
+			$this->z + $halfWidth
+		);
+
+		$this->setDataProperty(Entity::DATA_SCALE, Entity::DATA_TYPE_FLOAT, $value);
+		$this->setDataProperty(Entity::DATA_BOUNDING_BOX_WIDTH, Entity::DATA_TYPE_FLOAT, $this->width);
+		$this->setDataProperty(Entity::DATA_BOUNDING_BOX_HEIGHT, Entity::DATA_TYPE_FLOAT, $this->height);
+	}
+
+	/**
 	 * Spawn the NPC to a player
 	 *
 	 * @param Player $player
@@ -116,7 +201,9 @@ abstract class HumanNPC extends Human implements BaseNPC {
 		}
 		$this->name = $this->getNameTag();
 		$this->core->freezeLoadedChunks();
-		$this->setDataProperty(Entity::DATA_NO_AI, Entity::DATA_TYPE_BYTE, 1);
+		$this->setImmobile();
+		$this->setNameTagVisible();
+		$this->setNameTagAlwaysVisible();
 	}
 
 	/**
