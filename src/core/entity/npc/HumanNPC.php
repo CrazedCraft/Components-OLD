@@ -49,14 +49,14 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @param bool $value
 	 */
 	public function setImmobile($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_IMMOBILE, !$value);
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_NO_AI, !$value);
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function isImmobile() {
-		return (bool) $this->getDataFlag(Entity::DATA_FLAG_IMMOBILE, Entity::DATA_FLAGS);
+		return (bool) $this->getDataFlag(Entity::DATA_FLAG_NO_AI, Entity::DATA_FLAGS);
 	}
 
 	/**
