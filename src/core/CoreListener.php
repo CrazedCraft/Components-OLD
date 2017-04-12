@@ -322,7 +322,7 @@ class CoreListener implements Listener {
 		} elseif($pk instanceof CommandStepPacket) { // Handle commands
 			$event->setCancelled(true);
 			$name = $pk->name;
-			$params = json_decode(json_encode($pk->overload), true);
+			$params = json_decode($pk->outputFormat, true);
 			$command = "/" . $name;
 			if(is_array($params)) {
 				foreach($params as $param => $data) {

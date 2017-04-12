@@ -10,13 +10,17 @@
 
 namespace core;
 
+use core\language\LanguageUtils;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat as TF;
+use pocketmine\utils\TextFormat;
 
 class Utils {
+
+	const PREFIX = TextFormat::BOLD . TextFormat::GOLD . "CC" . TextFormat::RESET . TextFormat::YELLOW . "> " . TextFormat::RESET;
 
 	/**
 	 * Get a vector instance from a string
@@ -50,46 +54,22 @@ class Utils {
 	 * @param string $string
 	 * @param string $symbol
 	 *
-	 * @return mixed
+	 * @return string
 	 */
-	public static function translateColors($string, $symbol = "&") {
-		$string = str_replace($symbol . "0", TF::BLACK, $string);
-		$string = str_replace($symbol . "1", TF::DARK_BLUE, $string);
-		$string = str_replace($symbol . "2", TF::DARK_GREEN, $string);
-		$string = str_replace($symbol . "3", TF::DARK_AQUA, $string);
-		$string = str_replace($symbol . "4", TF::DARK_RED, $string);
-		$string = str_replace($symbol . "5", TF::DARK_PURPLE, $string);
-		$string = str_replace($symbol . "6", TF::GOLD, $string);
-		$string = str_replace($symbol . "7", TF::GRAY, $string);
-		$string = str_replace($symbol . "8", TF::DARK_GRAY, $string);
-		$string = str_replace($symbol . "9", TF::BLUE, $string);
-		$string = str_replace($symbol . "a", TF::GREEN, $string);
-		$string = str_replace($symbol . "b", TF::AQUA, $string);
-		$string = str_replace($symbol . "c", TF::RED, $string);
-		$string = str_replace($symbol . "d", TF::LIGHT_PURPLE, $string);
-		$string = str_replace($symbol . "e", TF::YELLOW, $string);
-		$string = str_replace($symbol . "f", TF::WHITE, $string);
-
-		$string = str_replace($symbol . "k", TF::OBFUSCATED, $string);
-		$string = str_replace($symbol . "l", TF::BOLD, $string);
-		$string = str_replace($symbol . "m", TF::STRIKETHROUGH, $string);
-		$string = str_replace($symbol . "n", TF::UNDERLINE, $string);
-		$string = str_replace($symbol . "o", TF::ITALIC, $string);
-		$string = str_replace($symbol . "r", TF::RESET, $string);
-
-		return $string;
+	public static function translateColors(string $string, string $symbol = "&") : string {
+		return LanguageUtils::translateColors($string, $symbol);
 	}
 
 	/**
-	 * Removes all coloring and color codes from a string
+	 * Removes all minecraft color codes from a string
 	 *
-	 * @param $string
-	 * @return mixed
+	 * @param string $string
+	 * @param string $symbol
+	 *
+	 * @return string
 	 */
-	public static function cleanString($string) {
-		$string = self::translateColors($string);
-		$string = TF::clean($string);
-		return $string;
+	public static function cleanString(string $string, string $symbol = "&") : string {
+		return LanguageUtils::cleanString($string, $symbol);
 	}
 
 	/**
@@ -117,7 +97,7 @@ class Utils {
 
 	/**
 	 * Center a line of text based around the length of another line
-	 * 
+	 *
 	 * @param $toCentre
 	 * @param $checkAgainst
 	 *

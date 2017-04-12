@@ -550,7 +550,7 @@ class CorePlayer extends Player {
 						$this->core->getDatabaseManager()->getAuthDatabase()->register($this->getName(), $this->getHash(), $this->getEmail());
 						break;
 					}
-					$this->sendTranslatedMessage("INVALID_EMAIL", [], true);
+					$this->sendTranslatedMessage("INVALID_EMAIL", [], true, false);
 					break;
 			}
 		}
@@ -589,9 +589,10 @@ class CorePlayer extends Player {
 	 * @param $key
 	 * @param array $args
 	 * @param bool $isImportant
+	 * @param bool $center
 	 */
-	public function sendTranslatedMessage($key, array $args = [], $isImportant = false) {
-		$this->sendMessage($this->core->getLanguageManager()->translateForPlayer($this, $key, $args), $isImportant);
+	public function sendTranslatedMessage($key, array $args = [], $isImportant = false, $center = true) {
+		$this->sendMessage($this->core->getLanguageManager()->translateForPlayer($this, $key, $args, $center), $isImportant);
 	}
 
 	/**

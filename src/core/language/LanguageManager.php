@@ -149,7 +149,7 @@ class LanguageManager {
 
 	/**
 	 * Load a language into the existing ones
-	 * 
+	 *
 	 * @param $lang
 	 * @param $data
 	 */
@@ -160,51 +160,60 @@ class LanguageManager {
 				foreach($message as $parts) {
 					$string .= "{$parts}";
 				}
-				$this->registerMessage($lang, $key, Utils::translateColors($string));
+				$this->registerMessage($lang, $key, $string);
 			} else {
-				$this->registerMessage($lang, $key, Utils::translateColors($message));
+				$this->registerMessage($lang, $key, $message);
 			}
 		}
 	}
 
 	/**
 	 * Register a message into an existing language
-	 * 
+	 *
 	 * @param $lang
 	 * @param $key
 	 * @param $message
 	 */
 	public function registerMessage($lang, $key, $message) {
-		$this->messages[$lang][$key] = Utils::translateColors($message);
+		$this->messages[$lang][$key] = LanguageUtils::translateColors(str_replace("\n", "&r\n", $message . "&r"));
 	}
 
 	/**
 	 * @param CorePlayer $player
 	 * @param $key
 	 * @param array $args
+	 * @param bool $center
 	 *
 	 * @return mixed|null
 	 */
-	public function translateForPlayer(CorePlayer $player, $key, $args = []) {
-		return $this->translate($key, $player->getLanguageAbbreviation(), $args);
+	public function translateForPlayer(CorePlayer $player, $key, $args = [], $center = true) {
+		return $this->translate($key, $player->getLanguageAbbreviation(), $args, $center);
 	}
 
 	/**
 	 * @param $key
 	 * @param string $lang
 	 * @param array $args
+	 * @param bool $center
 	 *
 	 * @return mixed|null
 	 */
-	public function translate($key, $lang = "en", $args = []) {
-		if(!$this->isLanguage($lang)) {
+	public function translate($key, $lang = "en", $args = [], $center = true) {
+		if(!$this->isLanguage($lang)) { // Check if language exists, if not default to english
+			$this->plugin->getLogger()->debug("Couldn't find language '{$lang}'");
 			$lang = "en";
 		}
-		if(isset($this->messages[$lang][$key])) {
-			return self::argumentsToString($this->messages[$lang][$key], $args);
+		if(isset($this->messages[$lang][$key])) { // Check if translation exists, if not log to debug channel
+			$translated = self::argumentsToString($this->messages[$lang][$key], $args);
+			return $center ? LanguageUtils::centerPrecise($translated, null) : $translated;
+		} else {
+			$this->plugin->getLogger()->debug("Couldn't find message key '{$key}' for language '{$lang}'");
+			if(isset($this->messages["en"][$key])) { // Attempt to find the english translation
+				$translated = self::argumentsToString($this->messages["en"][$key], $args);
+				return $center ? LanguageUtils::centerPrecise($translated, null) : $translated;
+			}
 		}
-		$this->plugin->getLogger()->debug("Couldn't find message key '{$key}' for language '{$lang}'");
-		return "";
+		return $key; // Return the key if no translation was found
 	}
 
 	/**

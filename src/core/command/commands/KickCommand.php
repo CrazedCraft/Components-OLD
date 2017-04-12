@@ -40,7 +40,10 @@ class KickCommand extends CoreStaffCommand {
 			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
 				$victim = $target->getName();
-				$target->kick(implode(" ", $args), false);
+					$target->kick($this->getPlugin()->getLanguageManager()->translateForPlayer($target, "STAFF_KICK", [
+					$player->getName(),
+					implode(" ", $args),
+				]));
 				$player->sendTranslatedMessage("KICK_SUCCESS", [$victim]);
 			} else {
 				$player->sendTranslatedMessage("USER_NOT_ONLINE", [$name]);
