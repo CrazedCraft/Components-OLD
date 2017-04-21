@@ -37,7 +37,7 @@ abstract class GUIItem extends Item {
 	/** Time in which a user has to double click the item */
 	const DOUBLE_CLICK_TIME = 20;
 
-	private static $cooldownTick = [];
+	private static $cooldowns = [];
 	protected $clickCount = 0;
 	protected $lastClick = 0;
 
@@ -60,24 +60,24 @@ abstract class GUIItem extends Item {
 	 * @param bool $force
 	 */
 	final public function handleClick(CorePlayer $player, bool $force = false) {
-		$this->tickCooldowns();
-		$ticks = $player->getServer()->getTick();
+		$time =  microtime(true);
+		$this->checkCooldowns($time);
 		$lang = $player->getCore()->getLanguageManager();
 		if($this->clickCount == 0 and !$force) {
 			$player->sendPopup($this->getPreview($player));
 			$this->clickCount++;
 		} else {
-			$cooldownTick = $this->getCooldownTick($player);
-			if($this->getCooldown() > 5 and floor($ticks - $cooldownTick / 20) >= floor($this->getCooldown() / 20)) {
+			$cooldownTime = $this->getCooldownTime($player);
+			if($this->getCooldown() > 0 and $time >= $cooldownTime) {
 				$this->clickCount = 0;
 				$this->lastClick = 0;
-				self::$cooldownTick[$player->getUniqueId()->toString()][self::GUI_ITEM_ID] = $ticks;
+				self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID] = $time + $this->getCooldown();
 				$this->onClick($player);
 			} else {
-				$player->sendPopup($lang->translateForPlayer($player, "GUI_ITEM_COOLDOWN", [Utils::getTimeString($this->getCooldown() - ($ticks - $cooldownTick))]));
+				$player->sendPopup($lang->translateForPlayer($player, "GUI_ITEM_COOLDOWN", [Utils::getTimeString(floor($cooldownTime - $time), false)]));
 			}
 		}
-		$this->lastClick = $ticks;
+		$this->lastClick = $time;
 	}
 
 	public function onClick(CorePlayer $player) {
@@ -98,17 +98,17 @@ abstract class GUIItem extends Item {
 		return $player->getCore()->getLanguageManager()->translateForPlayer($player, "GUI_ITEM_TAP_GROUND");
 	}
 
-	final private function getCooldownTick(CorePlayer $player) {
-		if(isset(self::$cooldownTick[$player->getUniqueId()->toString()][self::GUI_ITEM_ID])) {
-			return self::$cooldownTick[$player->getUniqueId()->toString()][self::GUI_ITEM_ID];
+	final private function getCooldownTime(CorePlayer $player) {
+		if(isset(self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID])) {
+			return self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID];
 		}
 		return 0;
 	}
 
-	final private function tickCooldowns() {
-		foreach(self::$cooldownTick as $plId => $cooldown) {
-			if($cooldown == 0 or Utils::getPlayerByUUID($plId) == null) {
-				unset(self::$cooldownTick[$plId]);
+	final private function checkCooldowns(int $time) {
+		foreach(self::$cooldowns as $plId => $nextUse) {
+			if($nextUse <= $time or Utils::getPlayerByUUID($plId) === null) {
+				unset(self::$cooldowns[$plId]);
 			}
 		}
 	}

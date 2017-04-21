@@ -73,6 +73,7 @@ class Main extends PluginBase {
 		"jacknoordhuis",
 		"littlehorsey",
 		"jakeisthebest11",
+		"xxdoomrealxx",
 	]; // List of accounts with access to staff commands
 
 	/** Resource files & paths */
@@ -234,18 +235,21 @@ class Main extends PluginBase {
 			$errstr = substr($errstr, 0, $pos);
 		}
 
-		$error = "An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline" . PHP_EOL;
+		$error = "An $errno error happened: '$errstr' in '$errfile' at line $errline" . PHP_EOL;
 
-		if(!$this->errorLog->exists(strtolower($error))) {
-			$this->getLogger()->debug("Logging error to error reporting channel, Error: {$errno} \"{$errstr}\"");
-			$this->errorLog->set(strtolower($error), true);
-			$this->errorLog->save(true);
-			$error .= "```";
+		$encoded = base64_encode($error);
+		if(!$this->errorLog->exists($encoded)) {
+			$this->getLogger()->debug("Logging error to log Error: {$error}");
+
+			$backtrace = "";
 			foreach(($trace = \core\Utils::getTrace($trace === null ? 3 : 0, $trace)) as $i => $line) {
-				$error .= $line . PHP_EOL;
+				$backtrace .= $line . PHP_EOL;
 			}
-			$error .= "```";
-			$this->getServer()->getScheduler()->scheduleAsyncTask(new ReportErrorTask($error . PHP_EOL .  "Server: {$this->getServer()->getIp()}:{$this->getServer()->getPort()}"));
+
+			//$this->getServer()->getScheduler()->scheduleAsyncTask(new ReportErrorTask($error . PHP_EOL . $backtrace . PHP_EOL .  "Server: {$this->getServer()->getIp()}:{$this->getServer()->getPort()}"));
+
+			$this->errorLog->set($encoded, base64_encode($backtrace));
+			$this->errorLog->save(true);
 		}
 
 		return true;
