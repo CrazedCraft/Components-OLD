@@ -53,6 +53,10 @@
   "BANNED_KICK": "&cYou have been banned by &6&o{args1}&r&c!\n&eReason: &r{args2}\n&eExpires: &6{args3}",
   "BAN_SUCCESS": "&6- &a{args1} has been network banned for 7 days.",
 
+  "GUI_ITEM_COOLDOWN": "&ePlease wait {args1} before using that again!",
+  "GUI_ITEM_PREVIEW": "{args1}\n{args2}",
+  "GUI_ITEM_TAP_GROUND": "&o&7Tap the item on the ground to use.",
+
   "ONE_MINUTE_UNTIL_RESTART": "&eServer will restart in &a1 minute&e!",
   "SECONDS_UNTIL_RESTART": "&eServer restarting in &a{args1} second(s)&e!",
   "SERVER_RESTART": "&l&1C&ar&ea&6z&9e&5d&fC&7r&6a&cf&dt &6Server&r &7is restarting, we will be back in a moment!"

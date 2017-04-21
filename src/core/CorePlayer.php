@@ -19,6 +19,8 @@
 namespace core;
 
 use core\entity\antihack\KillAuraDetector;
+use core\gui\container\ContainerGUI;
+use core\gui\item\GUIItem;
 use core\task\CheckMessageTask;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
@@ -113,6 +115,9 @@ class CorePlayer extends Player {
 
 	/** @var int */
 	private $deviceOs = -1;
+
+	/** @var array */
+	private $guis = [];
 
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
@@ -294,6 +299,27 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @param string $type
+	 *
+	 * @return ContainerGUI|null
+	 */
+	public function getGuiContainer(string $type = "undefined") {
+		if($this->hasGuiContainer($type)) {
+			return $this->guis[$type];
+		}
+		return null;
+	}
+
+	/**
+	 * @param string $type
+	 *
+	 * @return bool
+	 */
+	public function hasGuiContainer(string $type = "undefined") {
+		return isset($this->guis[$type]) and $this->guis[$type] instanceof ContainerGUI;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function hasPlayersVisible() {
@@ -444,6 +470,23 @@ class CorePlayer extends Player {
 				$p->despawnFrom($this);
 			}
 		}
+	}
+
+	/**
+	 * @param ContainerGUI $gui
+	 * @param string $type
+	 * @param bool $overwrite
+	 *
+	 * @return bool
+	 * @throws \ErrorException
+	 */
+	public function addGuiContainer(ContainerGUI $gui, string $type = "undefined", $overwrite = false) {
+		if(!$this->hasGuiContainer($type) or $overwrite) {
+			$this->guis[$type] = $gui;
+			return true;
+		}
+
+		throw new \ErrorException("Attempted to overwrite existing GUI container!");
 	}
 
 	/**
@@ -720,7 +763,14 @@ class CorePlayer extends Player {
 	/**
 	 * @param PlayerInteractEvent $event
 	 */
-	public function onInteract(PlayerInteractEvent $event) {}
+	public function onInteract(PlayerInteractEvent $event) {
+		if($this->authenticated and !$event->isCancelled()) {
+			$item = $event->getItem();
+			if($item instanceof GUIItem) {
+				$item->handleClick($this, true);
+			}
+		}
+	}
 
 	/**
 	 * @param BlockBreakEvent $event

@@ -1,11 +1,19 @@
 <?php
 
 /**
- * Utils.php class
+ * CrazedCraft Network Components
+ *
+ * Copyright (C) 2016 CrazedCraft Network
+ *
+ * This is private software, you cannot redistribute it and/or modify any way
+ * unless otherwise given permission to do so. If you have not been given explicit
+ * permission to view or modify this software you should take the appropriate actions
+ * to remove this software from your device immediately.
+ *
+ * @author JackNoordhuis
  *
  * Created on 22/05/2016 at 4:20 PM
  *
- * @author Jack
  */
 
 namespace core;
@@ -14,13 +22,13 @@ use core\language\LanguageUtils;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
+use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat as TF;
-use pocketmine\utils\TextFormat;
 
 class Utils {
 
-	const PREFIX = TextFormat::BOLD . TextFormat::GOLD . "CC" . TextFormat::RESET . TextFormat::YELLOW . "> " . TextFormat::RESET;
+	const PREFIX = TF::BOLD . TF::GOLD . "CC" . TF::RESET . TF::YELLOW . "> " . TF::RESET;
 
 	/**
 	 * Get a vector instance from a string
@@ -110,6 +118,63 @@ class Utils {
 
 		$times = floor((strlen($checkAgainst) - strlen($toCentre)) / 2);
 		return str_repeat(" ", ($times > 0 ? $times : 0)) . $toCentre;
+	}
+
+	/**
+	 * @param $time
+	 * @param bool $inTicks
+	 *
+	 * @return string
+	 */
+	public static function getTimeString($time, bool $inTicks = true) {
+		if($time <= 0) {
+			return "0 seconds";
+		}
+		$sec = floor($inTicks ? $time / 20 : $time); // Convert to seconds
+		$min = floor($sec / 60);
+		if($sec > 0 and ($sec % 60) == 0) { // If it is exactly a multiple of 60
+			$timeStr = $min . " minute" . ($min == 1 ? "" : "s");
+		} else {
+			// If more than 1 min but not exactly a minute
+			$secLeft = $sec - ($min * 60);
+			$timeStr = "";
+			if($min > 0) {
+				$timeStr = $min . " minute" . ($min == 1 ? "" : "s") . " ";
+			}
+			$timeStr .= $secLeft . " second" . ($secLeft == 1 ? "" : "s");
+		}
+		trim($timeStr);
+		return $timeStr;
+
+	}
+
+	/**
+	 * @param $uuid
+	 *
+	 * @return null|\pocketmine\Player
+	 */
+	public static function getPlayerByUUID($uuid) {
+		$uuid = str_replace("-", "", strtolower($uuid));
+		foreach(Server::getInstance()->getOnlinePlayers() as $player) {
+			if(str_replace("-", "", strtolower($player->getUniqueId()->toString())) == $uuid) {
+				return $player;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Send a 'ghost' block to a player
+	 *
+	 * @param CorePlayer $player
+	 * @param Vector3 $pos
+	 * @param $id
+	 * @param $damage
+	 */
+	public static function sendBlock(CorePlayer $player, Vector3 $pos, $id, $damage) {
+		$pk = new UpdateBlockPacket();
+		$pk->records[] = [$pos->x, $pos->z, $pos->y, $id, $damage, UpdateBlockPacket::FLAG_PRIORITY];
+		$player->dataPacket($pk);
 	}
 
 	/**

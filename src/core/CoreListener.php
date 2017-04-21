@@ -19,6 +19,8 @@
 namespace core;
 
 use core\entity\text\FloatingText;
+use core\gui\container\ContainerGUI;
+use core\gui\item\GUIItem;
 use core\language\LanguageManager;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
@@ -31,6 +33,7 @@ use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerCreationEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerMoveEvent;
@@ -39,6 +42,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\CommandStepPacket;
+use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\LoginPacket;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -307,6 +311,26 @@ class CoreListener implements Listener {
 	}
 
 	/**
+	 * @param PlayerItemHeldEvent $event
+	 *
+	 * @priority HIGHEST
+	 * @ignoreCancelled true
+	 */
+	public function onItemHeld(PlayerItemHeldEvent $event) {
+		/** @var CorePlayer $player */
+		$player = $event->getPlayer();
+		$item = $event->getItem();
+		if($item instanceof GUIItem) {
+			$item->handleClick($player);
+		}/* else {
+			$orig = Item::get($item->getId(), $item->getDamage());
+			if(!($orig instanceof Item) or $item->getName() != $orig->getName()) {
+				$player->addPopup("ITEM_HELD", $item->getName(), 30, 0, 10);
+			}
+		}*/
+	}
+
+	/**
 	 * Intercept incoming data packet before they're handled by the server
 	 *
 	 * @param DataPacketReceiveEvent $event
@@ -393,6 +417,16 @@ class CoreListener implements Listener {
 			if(($source->isSurvival() or $source->isAdventure()) and ($pk->flags >> 9) & 0x01 === 1 or !$source->isSpectator() && ($pk->flags >> 7) & 0x01 === 1) {
 				$event->setCancelled(true);
 				$source->kick($this->plugin->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
+			}
+		} elseif($pk instanceof ContainerSetSlotPacket) {
+			/** @var CorePlayer $player */
+			$player = $event->getPlayer();
+			$inv = $player->getWindowById($pk->windowid);
+			if($inv instanceof ContainerGUI and $inv->getItem($pk->slot) instanceof GUIItem) {
+				if(!$inv->onSelect($pk->slot, $inv->getItem($pk->slot), $player)) {
+					$event->setCancelled();
+					$inv->sendContents($player);
+				}
 			}
 		}
 	}
