@@ -5,12 +5,30 @@
         "description": "Ban a player from the network",
         "permission": "any",
         "overloads": {
-          "default": {
+          "playerTarget": {
             "input": {
               "parameters": [
                 {
                   "name": "player",
                   "type": "target"
+                },
+                {
+                  "name": "reason",
+                  "type": "rawtext",
+                  "optional": true
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "stringTarget": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "player",
+                  "type": "rawtext"
                 },
                 {
                   "name": "reason",
@@ -33,12 +51,30 @@
         "description": "Kick a player from the server",
         "permission": "any",
         "overloads": {
-          "default": {
+          "playerTarget": {
             "input": {
               "parameters": [
                 {
                   "name": "player",
                   "type": "target"
+                },
+                {
+                  "name": "reason",
+                  "type": "rawtext",
+                  "optional": true
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "stringTarget": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "player",
+                  "type": "rawtext"
                 },
                 {
                   "name": "reason",

@@ -22,6 +22,7 @@ use core\database\ban\BanDatabase;
 use core\database\ban\mysql\task\AddBanRequest;
 use core\database\ban\mysql\task\CheckBanRequest;
 use core\database\ban\mysql\task\CheckDatabaseRequest;
+use core\database\ban\mysql\task\UpdateBanRequest;
 use core\database\mysql\MySQLDatabase;
 
 class MySQLBanDatabase extends MySQLDatabase implements BanDatabase {
@@ -39,6 +40,10 @@ class MySQLBanDatabase extends MySQLDatabase implements BanDatabase {
 
 	public function add($name, $ip, $cid, $expiry, $reason, $issuer) {
 		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new AddBanRequest($this, $name, $ip, $cid, $expiry, $reason, $issuer));
+	}
+
+	public function update($name, $ip, $cid) {
+		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new UpdateBanRequest($this, $name, $ip, $cid));
 	}
 
 	public function remove($name, $ip, $id) {

@@ -56,8 +56,14 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $networkBanned = false;
 
+	/** @var bool */
+	private $hasPreviousNetworkBan = false;
+
 	/** @var array */
 	private $networkBanData = [];
+
+	/** @var array */
+	private $previousNetworkBanData = [];
 
 	/** @var bool */
 	private $locked = false;
@@ -180,10 +186,24 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function hasPreviousNetworkBan() {
+		return $this->hasPreviousNetworkBan;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getNetworkBanData() {
 		return $this->networkBanData;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPreviousNetworkBanData() {
+		return $this->previousNetworkBanData;
 	}
 
 	/**
@@ -362,10 +382,24 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @param bool $value
+	 */
+	public function setHasPreviousNetworkBan($value = true) {
+		$this->hasPreviousNetworkBan = $value;
+	}
+
+	/**
 	 * @param array $data
 	 */
 	public function setNetworkBanData($data = []) {
 		$this->networkBanData = $data;
+	}
+
+	/**
+	 * @param array $data
+	 */
+	public function setPreviousNetworkBanData($data = []) {
+		$this->previousNetworkBanData = $data;
 	}
 
 	/**
@@ -604,12 +638,15 @@ class CorePlayer extends Player {
 	 */
 	public function checkNetworkBan() {
 		if($this->networkBanned and is_array($this->networkBanData)) {
-			// $message = explode("\n", $this->networkBanData["reason"]); //Todo – Format message properly
-			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "BANNED_KICK", [
-				$this->networkBanData["issuer_name"],
-				$this->networkBanData["reason"],
-				date("j-n-Y g:i a T", $this->networkBanData["expires"]),
-			]));
+			if(isset($this->networkBanData["ip"]) and $this->networkBanData["ip"] !== "0.0.0.0" and isset($this->networkBanData["uid"]) and $this->networkBanData["uid"] !== "") {
+				$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "BANNED_KICK", [
+					$this->networkBanData["issuer_name"],
+					$this->networkBanData["reason"],
+					$this->networkBanData["expires"] > 0 ? date("j-n-Y g:i a T", $this->networkBanData["expires"]) : "Never",
+				]));
+			} else {
+				$this->getCore()->getDatabaseManager()->getBanDatabase()->update($this->getName(), $this->getAddress(), $this->getClientId());
+			}
 		}
 	}
 

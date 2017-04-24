@@ -77,10 +77,15 @@ class CheckBanRequest extends MySQLBanRequest {
 					case self::SUCCESS:
 						$time = time();
 						foreach($result[1] as $ban) {
-							if($ban["valid"] and $ban["expires"] >= $time) {
-								$player->setNetworkBanned(true);
-								$player->setNetworkBanData($ban);
-								break;
+							if($ban["valid"]) {
+								if($ban["expires"] >= $time or $ban["expires"] == 0) {
+									$player->setNetworkBanned(true);
+									$player->setNetworkBanData($ban);
+									break;
+								} else {
+									$player->setHasPreviousNetworkBan(true);
+									$player->setPreviousNetworkBanData($ban);
+								}
 							}
 						}
 						if($this->doCallback) {

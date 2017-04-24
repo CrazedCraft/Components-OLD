@@ -54,6 +54,14 @@ abstract class ChestGUI extends ChestInventory implements ContainerGUI {
 		parent::__construct($this->fakeChest);
 	}
 
+	public function remove(Item $item) {
+		return true; // Stop items being removed
+	}
+
+	public function removeItem(...$slots) {
+		return true;  // Stop items being removed
+	}
+
 	public function onOpen(Player $who) {
 		$this->lastOpenPos = $who->getPosition()->subtract(0.5, 4, 0.5);
 		$this->fakeChest->setComponents($this->lastOpenPos->x, $this->lastOpenPos->y, $this->lastOpenPos->z);

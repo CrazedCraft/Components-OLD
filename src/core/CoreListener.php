@@ -419,13 +419,12 @@ class CoreListener implements Listener {
 				$source->kick($this->plugin->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
 			}
 		} elseif($pk instanceof ContainerSetSlotPacket) {
-			/** @var CorePlayer $player */
-			$player = $event->getPlayer();
-			$inv = $player->getWindowById($pk->windowid);
-			if($inv instanceof ContainerGUI and $inv->getItem($pk->slot) instanceof GUIItem) {
-				if(!$inv->onSelect($pk->slot, $inv->getItem($pk->slot), $player)) {
-					$event->setCancelled();
-					$inv->sendContents($player);
+			$inv = $source->getWindowById($pk->windowid);
+			if($inv instanceof ContainerGUI) {
+				$item = $inv->getItem($pk->slot);
+				if($item instanceof GUIItem) {
+					$inv->onSelect($pk->slot, $item, $source);
+					$event->setCancelled(true);
 				}
 			}
 		}

@@ -27,6 +27,8 @@ interface BanDatabase {
 
 	public function add($name, $ip, $cid, $expiry, $reason, $issuer);
 
+	public function update($name, $ip, $cid);
+
 	public function remove($name, $ip, $cid);
 
 }

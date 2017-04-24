@@ -51,7 +51,9 @@
   "KICK_SUCCESS": "&6- &aKicked {args1} from the game successfully!",
   "STAFF_KICK": "&cYou have been kicked by &6&o{args1}&r&c!\n&eReason: &r{args2}",
   "BANNED_KICK": "&cYou have been banned by &6&o{args1}&r&c!\n&eReason: &r{args2}\n&eExpires: &6{args3}",
-  "BAN_SUCCESS": "&6- &a{args1} has been network banned for 7 days.",
+  "BAN_SUCCESS": "&6- &a{args1} has been network banned {args2}",
+  "BAN_DURATION_DAYS": "for {args1} days",
+  "BAN_DURATION_FOREVER": "forever",
 
   "GUI_ITEM_COOLDOWN": "&ePlease wait {args1} before using that again!",
   "GUI_ITEM_PREVIEW": "{args1}\n{args2}",

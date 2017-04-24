@@ -32,16 +32,23 @@ class BanCommand extends CoreStaffCommand {
 			$oldCommand->setLabel("ban_disabled");
 			$oldCommand->unregister($map);
 		}
-		parent::__construct($plugin, "ban", "Ban a player from the network for a week", "/ban <player> <reason>", []);
+		parent::__construct($plugin, "ban", "Ban a player from the network", "/ban <player> <reason>", []);
 	}
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[1])) {
 			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
-				$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientId(), strtotime("+7 days"), implode(" ", $args), $player->getName());
+				if($target->hasPreviousNetworkBan()) {
+					$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientId(), 0, implode(" ", $args), $player->getName());
+					$player->sendTranslatedMessage("BAN_SUCCESS", [$name, $player->getCore()->getLanguageManager()->translateForPlayer($player, "BAN_DURATION_FOREVER")]);
+				} else {
+					$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($target->getName(), $target->getAddress(), $target->getClientId(), strtotime("+7 days"), implode(" ", $args), $player->getName());
+					$player->sendTranslatedMessage("BAN_SUCCESS", [$name, $player->getCore()->getLanguageManager()->translateForPlayer($player, "BAN_DURATION_DAYS", ["7"])]);
+				}
 			} else {
-				$player->sendTranslatedMessage("USER_NOT_ONLINE", [$name]);
+				$this->getPlugin()->getDatabaseManager()->getBanDatabase()->add($name, "", "", strtotime("+7 days"), implode(" ", $args), $player->getName());
+				$player->sendTranslatedMessage("BAN_SUCCESS", [$name, $player->getCore()->getLanguageManager()->translateForPlayer($player, "BAN_DURATION_DAYS", ["7"])]);
 			}
 		} else {
 			$player->sendTranslatedMessage("COMMAND_USAGE", [$this->getUsage()], true);
