@@ -40,6 +40,7 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\event\server\QueryRegenerateEvent;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\CommandStepPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
@@ -105,6 +106,16 @@ class CoreListener implements Listener {
 	 */
 	public function getPlugin() {
 		return $this->getPlugin();
+	}
+
+	/**
+	 * Set the global player counts
+	 *
+	 * @param QueryRegenerateEvent $event
+	 */
+	public function onQueryRegenerate(QueryRegenerateEvent $event) {
+		$event->setPlayerCount($this->plugin->getNetworkManager()->getOnlinePlayers());
+		$event->setMaxPlayerCount($this->plugin->getNetworkManager()->getMaxPlayers());
 	}
 
 	/**

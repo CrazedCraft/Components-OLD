@@ -23,6 +23,7 @@ use core\database\CoreDatabaseManager;
 use core\entity\antihack\KillAuraDetector;
 use core\entity\text\FloatingText;
 use core\language\LanguageManager;
+use core\network\NetworkManager;
 use core\task\ReportErrorTask;
 use core\task\RestartTask;
 use pocketmine\entity\Entity;
@@ -55,6 +56,9 @@ class Main extends PluginBase {
 
 	/** @var LanguageManager */
 	private $languageManager;
+
+	/** @var NetworkManager */
+	private $networkManager;
 
 	/** @var FloatingText */
 	public $floatingText = [];
@@ -92,6 +96,8 @@ class Main extends PluginBase {
 		set_error_handler([$this, "errorHandler"], E_ALL);
 		$this->getLogger()->info("Enabling command map...");
 		$this->setCommandMap();
+		$this->getLogger()->info("Enabling network manager...");
+		$this->setNetworkManager();
 		$this->getLogger()->info("Initializing database manager...");
 		$this->setDatabaseManager();
 		$this->getLogger()->info("Setting event listener...");
@@ -179,6 +185,13 @@ class Main extends PluginBase {
 	}
 
 	/**
+	 * @return NetworkManager
+	 */
+	public function getNetworkManager() : NetworkManager {
+		return $this->networkManager;
+	}
+
+	/**
 	 * Set the command map
 	 */
 	public function setCommandMap() {
@@ -204,6 +217,13 @@ class Main extends PluginBase {
 	 */
 	public function setLanguageManager() {
 		$this->languageManager = new LanguageManager($this);
+	}
+
+	/**
+	 * Set the network manager
+	 */
+	public function setNetworkManager() {
+		$this->networkManager = new NetworkManager($this);
 	}
 
 	/**
