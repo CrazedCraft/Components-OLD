@@ -53,6 +53,9 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $authenticated = false;
 
+	/** @var string */
+	private $lastIp = "0.0.0.0";
+
 	/** @var bool */
 	private $networkBanned = false;
 
@@ -183,6 +186,13 @@ class CorePlayer extends Player {
 	 */
 	public function isNetworkBanned() {
 		return $this->networkBanned;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLastIp() {
+		return $this->lastIp;
 	}
 
 	/**
@@ -372,6 +382,21 @@ class CorePlayer extends Player {
 	 */
 	public function setAuthenticated($authenticated = true) {
 		$this->authenticated = $authenticated;
+		$this->chatMuted = false;
+		$this->setLoginTime();
+		/** @var CorePlayer $p */
+		foreach($this->getServer()->getOnlinePlayers() as $p) {
+			$p->showPlayer($this);
+		}
+		$this->spawnKillAuraDetectors();
+		$this->getCore()->getDatabaseManager()->getAuthDatabase()->update($this->getName(), $this->getAuthData());
+	}
+
+	/**
+	 * @param string $ip
+	 */
+	public function setLastIp(string $ip) {
+		$this->lastIp = $ip;
 	}
 
 	/**
@@ -585,7 +610,7 @@ class CorePlayer extends Player {
 		if($this->isRegistered()) {
 			if(hash_equals($this->getHash(), Utils::hash(strtolower($this->getName()), $message))) {
 				$this->chatMuted = false;
-				$this->authenticated = true;
+				$this->setAuthenticated(true);
 				$this->setLoginTime();
 				/** @var CorePlayer $p */
 				foreach($this->getServer()->getOnlinePlayers() as $p) {

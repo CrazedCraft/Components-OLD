@@ -82,5 +82,24 @@
         }
       }
     ]
+  },
+  "ping": {
+    "versions": [
+      {
+        "aliases": [],
+        "description": "Check your ping to the server!",
+        "permission": "any",
+        "overloads": {
+          "default": {
+            "input": {
+              "parameters": []
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
   }
 }

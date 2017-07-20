@@ -1,5 +1,6 @@
 {
   "WELCOME": "&eWelcome to &l&1C&ar&ea&6z&9e&5d&fC&7r&6a&cf&dt&6!\n&7CrazedCraft is a Minecraft: Pocket Edition server network dedicated to bringing you new, fun and unique gamemodes! Feel free to contact us on twitter (@CrazedCraft) if you would like to get in touch! From everyone on the team, we hope you enjoy your stay!\n    ",
+  "IP_REMEMBERED_LOGIN": "&6- §aYou have been logged in automatically!",
   "REGISTER_PROMPT": "&eThis account is not registered, to play you must register by typing your desired password directly into chat.",
   "LOGIN_PROMPT": "&eThis account is registered, please login by typing your password directly into chat.",
   "CONFIRM_PASSWORD_PROMPT": "&aThanks! &ePlease enter your password again to confirm.",

@@ -55,7 +55,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	/**
 	 * @return bool
 	 */
-	public function isImmobile() {
+	public function isImmobile() : bool {
 		return (bool) $this->getDataFlag(Entity::DATA_FLAG_NO_AI, Entity::DATA_FLAGS);
 	}
 
@@ -105,7 +105,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @return float
 	 */
 	public function getScale() : float {
-		return $this->getDataProperty(Entity::DATA_SCALE);
+		return $this->getDataProperty(Entity::DATA_SCALE) ?? 1.0;
 	}
 
 	/**
@@ -126,8 +126,6 @@ abstract class HumanNPC extends Human implements BaseNPC {
 		);
 
 		$this->setDataProperty(Entity::DATA_SCALE, Entity::DATA_TYPE_FLOAT, $value);
-		$this->setDataProperty(Entity::DATA_BOUNDING_BOX_WIDTH, Entity::DATA_TYPE_FLOAT, $this->width);
-		$this->setDataProperty(Entity::DATA_BOUNDING_BOX_HEIGHT, Entity::DATA_TYPE_FLOAT, $this->height);
 	}
 
 	/**

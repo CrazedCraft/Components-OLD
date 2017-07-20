@@ -66,7 +66,7 @@ class FloatingText {
 
 	/**
 	 * Despawn the floating text from an array of players
-	 * 
+	 *
 	 * @param array $players
 	 */
 	public function despawnFromAll(array $players = []) {
@@ -80,7 +80,7 @@ class FloatingText {
 
 	/**
 	 * Spawn the floating text to a player
-	 * 
+	 *
 	 * @param Player $player
 	 */
 	public function spawnTo(Player $player) {
@@ -91,7 +91,7 @@ class FloatingText {
 			$pk->eid = $this->eid;
 			$pk->uuid = UUID::fromRandom();
 			$pk->x = $this->pos->x;
-			$pk->y = $this->pos->y - 1.62;
+			$pk->y = $this->pos->y + 0.15;
 			$pk->z = $this->pos->z;
 			$pk->speedX = 0;
 			$pk->speedY = 0;
@@ -99,12 +99,11 @@ class FloatingText {
 			$pk->yaw = 0;
 			$pk->pitch = 0;
 			$pk->item = Item::get(0);
-			$pk->metadata =[
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_INVISIBLE) | (1 << Entity::DATA_FLAG_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
+			$pk->metadata = [
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->text],
-				Entity::DATA_NO_AI => [Entity::DATA_TYPE_BYTE, 1],
 				Entity::DATA_LEAD_HOLDER => [Entity::DATA_TYPE_LONG, -1],
-				Entity::DATA_LEAD => [Entity::DATA_TYPE_BYTE, 0]
+				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],
 			];
 			$player->dataPacket($pk);
 		}
@@ -112,7 +111,7 @@ class FloatingText {
 
 	/**
 	 * Despawn the floating text from a player
-	 * 
+	 *
 	 * @param Player $player
 	 */
 	public function despawnFrom(Player $player) {

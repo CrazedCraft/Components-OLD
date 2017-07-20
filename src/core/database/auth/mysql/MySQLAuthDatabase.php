@@ -31,7 +31,7 @@ use core\database\mysql\MySQLDatabase;
  * MySQL implementation of the Auth database
  */
 class MySQLAuthDatabase extends MySQLDatabase implements AuthDatabase {
-	
+
 	/** @var UpdateRequestScheduler */
 	protected $updateScheduler;
 
@@ -39,8 +39,7 @@ class MySQLAuthDatabase extends MySQLDatabase implements AuthDatabase {
 	 * Schedule an AsyncTask to check the database's status
 	 */
 	public function init() {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new CheckDatabaseRequest($this));
-		$this->updateScheduler = new UpdateRequestScheduler($this->getPlugin());
+		//$this->updateScheduler = new UpdateRequestScheduler($this->getPlugin());
 	}
 
 	public function register($name, $hash, $email) {

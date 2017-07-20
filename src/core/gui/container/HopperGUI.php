@@ -24,9 +24,9 @@ use core\Utils;
 use pocketmine\inventory\HopperInventory;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\nbt\tag\ListTag;
+use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
 use pocketmine\tile\Hopper;
@@ -44,8 +44,8 @@ abstract class HopperGUI extends HopperInventory  implements ContainerGUI {
 	private $replacedBlockData = [];
 
 	public function __construct(CorePlayer $owner) {
-		$this->fakeHopper = new Hopper($owner->getLevel()->getChunk($owner->x >> 4, $owner->z >> 4), new CompoundTag("", [
-			new ListTag("Items", []),
+		$this->fakeHopper = new Hopper($owner->getLevel()->getChunk($owner->x >> 4, $owner->z >> 4), new Compound("", [
+			new Enum("Items", []),
 			new StringTag("id", Tile::HOPPER),
 			new IntTag("x", $owner->x),
 			new IntTag("y", $owner->y),

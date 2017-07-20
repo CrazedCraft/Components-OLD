@@ -76,7 +76,7 @@ class Main extends PluginBase {
 	private static $staff = [
 		"jacknoordhuis",
 		"littlehorsey",
-		"jakeisthebest11",
+		"jakeisthebest1",
 		"xxdoomrealxx",
 	]; // List of accounts with access to staff commands
 
