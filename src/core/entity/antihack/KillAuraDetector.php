@@ -140,7 +140,7 @@ class KillAuraDetector extends HumanNPC {
 	public function onUpdate($currentTick) {
 		parent::onUpdate($currentTick);
 		$wasVisible = $this->isVisible();
-		if(($this->ticksLived % 10) == 0) $this->setVisible(false);
+		if(($this->ticksLived % 20) == 0) $this->setVisible(false);
 		if($this->hasValidTarget()) {
 			$oldPos = $this->getPosition();
 			$newPos = $this->getNewPosition();

@@ -26,8 +26,8 @@ class MatchManager {
 	/** @var Plugin */
 	private $plugin;
 
-	/** @var TimingsHandler */
-	private $timings;
+	///** @var TimingsHandler */
+	//private $timings;
 
 	/** @var MatchHeartbeat */
 	private $heartbeat;
@@ -40,7 +40,7 @@ class MatchManager {
 
 	public function __construct(Plugin $plugin) {
 		$this->plugin = $plugin;
-		$this->timings = new TimingsHandler("Match Manager");
+		//$this->timings = new TimingsHandler("Match Manager");
 		$this->heartbeat = new MatchHeartbeat($this);
 	}
 
@@ -51,12 +51,12 @@ class MatchManager {
 		return $this->plugin;
 	}
 
-	/**
-	 * @return TimingsHandler
-	 */
-	public function getTimingsHandler() {
-		return $this->timings;
-	}
+	///**
+	// * @return TimingsHandler
+	// */
+	//public function getTimingsHandler() {
+	//	return $this->timings;
+	//}
 
 	/**
 	 * @return MatchHeartbeat
@@ -73,12 +73,37 @@ class MatchManager {
 	}
 
 	/**
+	 * @param $id
+	 *
+	 * @return Match|null
+	 */
+	public function getMatch($id) {
+		return $this->matches[$id] ?? null;
+	}
+
+	/**
+	 * @param Match $match
+	 */
+	public function addMatch(Match $match) {
+		$this->matches[$match->getId()] = $match;
+	}
+
+	/**
+	 * @param $id
+	 */
+	public function removeMatch($id) {
+		$this->getMatch($id)->close();
+		unset($this->matches[$id]);
+	}
+
+	/**
 	 * Keep all matches moving and clean up inactive ones
 	 *
 	 * @param $currentTick
 	 */
 	public function tick($currentTick) {
-		$this->timings->startTiming();
+		$tickDiff = $currentTick - $this->lastTick;
+		//$this->timings->startTiming();
 		foreach($this->matches as $key => $match) {
 			if($match instanceof Match) {
 				if($match->isActive()) {
@@ -91,8 +116,9 @@ class MatchManager {
 				unset($this->matches[$key]);
 			}
 		}
-		$this->timings->stopTiming();
-		$this->plugin->getLogger()->debug("Ticked MatchManager in " . round(($currentTick - $this->lastTick) / 20) . " seconds!");
+		//$this->timings->stopTiming();
+		$this->plugin->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
+		$this->lastTick = $currentTick;
 	}
 
 }

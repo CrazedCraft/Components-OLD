@@ -74,6 +74,7 @@ class LoginRequest extends MySQLAuthRequest {
 						$player->setLockReason($result[1]["lockreason"]);
 						$player->setHash((string)$result[1]["hash"]);
 						$player->setEmail((string)$result[1]["email"]);
+						$player->setRegisteredTime((int)$result[1]["registerdate"]);
 						$player->setLanguageAbbreviation((string)$result[1]["lang"]);
 						$player->setTimePlayed((int)$result[1]["timeplayed"]);
 						$player->addCoins((int)$result[1]["coins"]);

@@ -36,6 +36,9 @@ class RegisterRequest extends MySQLAuthRequest {
 	/** @var string */
 	private $email;
 
+	/** @var int */
+	private $registerTime = 0;
+
 	/** States */
 	const CONNECTION_FAILURE = "database.connection.failure";
 	const REGISTER_SUCCESS = "registration.success";
@@ -60,7 +63,7 @@ class RegisterRequest extends MySQLAuthRequest {
 	 * Executes the registration request
 	 */
 	public function onRun() {
-		$time = time();
+		$this->registerTime = $time = time();
 		$mysqli = $this->getMysqli();
 		if($this->checkConnection($mysqli)) return;
 		$stmt = $mysqli->stmt_init();
@@ -91,6 +94,7 @@ class RegisterRequest extends MySQLAuthRequest {
 						$player->setRegistered(true);
 						$player->setAuthenticated(true);
 						$player->setLoginTime();
+						$player->setRegisteredTime($this->registerTime);
 						/** @var CorePlayer $p */
 						foreach($server->getOnlinePlayers() as $p) {
 							$p->showPlayer($player);

@@ -38,8 +38,10 @@ use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\network\protocol\AvailableCommandsPacket;
+use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
+use pocketmine\Server;
 use pocketmine\utils\PluginException;
 
 class CorePlayer extends Player {
@@ -79,6 +81,9 @@ class CorePlayer extends Player {
 
 	/** @var string */
 	private $email = "";
+
+	/** @var int */
+	private $registeredTime = 0;
 
 	/** @var int */
 	private $loginTime = 0;
@@ -127,6 +132,9 @@ class CorePlayer extends Player {
 
 	/** @var array */
 	private $guis = [];
+
+	/** @var array */
+	public $commandData = [];
 
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
@@ -242,6 +250,13 @@ class CorePlayer extends Player {
 	 */
 	public function getEmail() {
 		return $this->email;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getRegisteredTime() {
+		return $this->registeredTime;
 	}
 
 	/**
@@ -363,6 +378,29 @@ class CorePlayer extends Player {
 		return $this->deviceOs;
 	}
 
+	public function getDeviceOSString() {
+		switch($this->deviceOs) {
+			case self::OS_ANDROID:
+				return "Android";
+			case self::OS_IOS:
+				return "iOS";
+			case self::OS_FIREOS:
+				return "FireOS";
+			case self::OS_GEARVR:
+				return "Gear VR";
+			case self::OS_HOLOLENS:
+				return "Holo-lens";
+			case self::OS_WIN10:
+				return "Windows 10";
+			case self::OS_WIN32:
+				return "Windows 32";
+			case self::OS_DEDICATED:
+				return "Dedicated";
+			default:
+				return "Unknown";
+		}
+	}
+
 	/**
 	 * @return Main
 	 */
@@ -453,6 +491,13 @@ class CorePlayer extends Player {
 	 */
 	public function setEmail($email) {
 		$this->email = $email;
+	}
+
+	/**
+	 * @param int $value
+	 */
+	public function setRegisteredTime(int $value = 0) {
+		$this->registeredTime = $value;
 	}
 
 	/**
@@ -593,14 +638,14 @@ class CorePlayer extends Player {
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(0, 2.5, 0));
+			$entity->setOffset(new Vector3(-0.5, 3.5, -0));
 		} else {
 			$entity->kill();
 		}
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(0, -2.5, 0));
+			$entity->setOffset(new Vector3(0.5, -3.5, 0));
 		} else {
 			$entity->kill();
 		}
@@ -745,12 +790,21 @@ class CorePlayer extends Player {
 		return true;
 	}
 
+	public function onUpdate($currentTick) {
+		if($this->getPing() >= 1000) {
+			$this->kick("You have been kicked due to your ping ({$this->getPing()}ms)");
+		}
+		return parent::onUpdate($currentTick);
+	}
+
 	public function sendCommandData() {
 		$default = $this->getCore()->getCommandMap()->getDefaultCommandData();
 
 		if($this->isStaff()) {
 			$default = array_merge($default, $this->getCore()->getCommandMap()->getCommandData("staff"));
 		}
+
+		$this->commandData = $default;
 
 		$pk = new AvailableCommandsPacket();
 		$pk->commands = json_encode($default);
@@ -799,7 +853,7 @@ class CorePlayer extends Player {
 	 */
 	public function onMove(PlayerMoveEvent $event) {
 		$y = $event->getTo()->getY();
-		if($y <= 0 or $y >= 112) {
+		if($y <= 0 or $y >= 156) {
 			$this->kill();
 		} else {
 			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(),$this->getFloorY()-1,$this->getFloorZ()));

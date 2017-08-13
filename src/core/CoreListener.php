@@ -46,7 +46,6 @@ use pocketmine\network\protocol\CommandStepPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\LoginPacket;
 use pocketmine\Player;
-use pocketmine\utils\TextFormat;
 
 class CoreListener implements Listener {
 
@@ -311,14 +310,16 @@ class CoreListener implements Listener {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
 		$event->setQuitMessage("");
-		$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
+		if($player->isAuthenticated())
+			$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
 	}
 
 	public function onKick(PlayerKickEvent $event) {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
 		$event->setQuitMessage("");
-		$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
+		if($player->isAuthenticated())
+			$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
 	}
 
 	/**
@@ -357,10 +358,29 @@ class CoreListener implements Listener {
 		} elseif($pk instanceof CommandStepPacket) { // Handle commands
 			$event->setCancelled(true);
 			$name = $pk->name;
+			if(!isset($source->commandData[$name])) {
+				foreach($source->commandData as $n => $d) { // loop over all commands to find an alias that matches the given command name
+					if(isset($d["versions"][0]["aliases"]) and in_array($name, $d["versions"][0]["aliases"])) {
+						$name = $n;
+						break;
+					}
+				}
+			}
+			if(!isset($source->commandData[$name])) {
+				$source->sendMessage("Unknown command!");
+				return;
+			}
 			$params = json_decode($pk->outputFormat, true);
 			$command = "/" . $name;
-			if(is_array($params)) {
-				foreach($params as $param => $data) {
+			$data = $source->commandData[$name];
+			$expected = $data["versions"][0]["overloads"][$pk->overload]["input"]["parameters"];
+			foreach($expected as $expectedArgument) {
+				if((!isset($params[$expectedArgument["name"]]) and (isset($expectedArgument["name"]["optional"])) and $expectedArgument["name"]["optional"] !== true)) {
+					$source->sendMessage("Incorrect arguments given for {$name} command!");
+					return;
+				}
+				if(isset($params[$expectedArgument["name"]])) {
+					$data = $params[$expectedArgument["name"]];
 					if(is_array($data)) { // Target argument type
 						if(isset($data["selector"])) {
 							$selector = $data["selector"];
