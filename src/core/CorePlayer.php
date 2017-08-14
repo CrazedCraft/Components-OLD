@@ -26,6 +26,7 @@ use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
@@ -124,6 +125,12 @@ class CorePlayer extends Player {
 	/** @var int */
 	private $flyChances = 0;
 
+	/** @var int */
+	private $lastJump = 0;
+
+	/** @var int */
+	public $reachChances = 0;
+
 	/** @var bool */
 	private $showPlayers = true;
 
@@ -135,6 +142,9 @@ class CorePlayer extends Player {
 
 	/** @var array */
 	public $commandData = [];
+
+	/** @var int */
+	private $pingChances = 0;
 
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
@@ -612,7 +622,7 @@ class CorePlayer extends Player {
 	 * Checks the amount of times a player has triggered a kill aura detector and handles the result accordingly
 	 */
 	public function checkKillAuraTriggers() {
-		if($this->killAuraTriggers >= 8) $this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
+		if($this->killAuraTriggers >= 12) $this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
 	}
 
 	/**
@@ -768,7 +778,29 @@ class CorePlayer extends Player {
 	public function attack($damage, EntityDamageEvent $source) {
 		if($this->state === self::STATE_PLAYING) {
 			parent::attack($damage, $source);
-			if($source->setCancelled()) $this->lastDamagedTime = microtime(true);
+			if(!$source->isCancelled()) {
+				$this->lastDamagedTime = microtime(true);
+
+				if($source instanceof EntityDamageByEntityEvent) {
+					$attacker = $source->getDamager();
+					if($attacker instanceof CorePlayer) {
+						$distance = $this->distance($attacker);
+						if($distance >= 5) {
+							$attacker->reachChances += 1;
+						} elseif($distance >= 8) {
+							$attacker->reachChances += 2;
+						} elseif($distance >= 10) {
+							$attacker->reachChances += 4;
+						} else {
+							$attacker->reachChances--;
+						}
+
+						if($attacker->reachChances >= 12) {
+							$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
+						}
+					}
+				}
+			}
 			return true;
 		}
 		$source->setCancelled(true);
@@ -791,8 +823,29 @@ class CorePlayer extends Player {
 	}
 
 	public function onUpdate($currentTick) {
-		if($this->getPing() >= 1000) {
-			$this->kick("You have been kicked due to your ping ({$this->getPing()}ms)");
+		if($currentTick % 20 == 0) { // only check ping every second (20 ticks)
+			if($this->getPing() >= 1000) {
+				if($this->getPing() >= 2000) {
+					$this->pingChances += 2;
+				} else {
+					$this->pingChances += 1;
+				}
+				if($this->pingChances >= 6) {
+					$this->kick("You have been kicked due to your ping ({$this->getPing()}ms)");
+				}
+			} else {
+				if($this->pingChances >= 1) {
+					$this->pingChances--;
+				}
+			}
+		}
+
+		if(($currentTick % 1200) == 0) { // every minute
+			if($this->state === self::STATE_LOBBY) {
+				if($this->killAuraTriggers >= 1) {
+					$this->killAuraTriggers--;
+				}
+			}
 		}
 		return parent::onUpdate($currentTick);
 	}
@@ -856,17 +909,42 @@ class CorePlayer extends Player {
 		if($y <= 0 or $y >= 156) {
 			$this->kill();
 		} else {
-			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(),$this->getFloorY()-1,$this->getFloorZ()));
-			if($block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5 and round($event->getTo()->getY() - $event->getFrom()->getY(), 3) >= 0.375) {
-				$this->flyChances++;
-			} else {
-				$this->flyChances = 0;
+			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(),$this->getFloorY() - 1,$this->getFloorZ()));
+			$distance = round($event->getTo()->getY() - $event->getFrom()->getY(), 3);
+			if($distance >= 0.05 and microtime(true) - $this->lastJump >= 5) {
+				if($block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5) {
+					$second = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 2, $this->getFloorZ()));
+					if($second->getId() === Block::AIR) {
+						$third = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 3, $this->getFloorZ()));
+						if($third->getId() === Block::AIR) {
+							$this->flyChances += 2;
+						} else {
+							$this->flyChances += 1;
+						}
+					} else {
+						if($distance >= 0.5) {
+							$this->flyChances += 5;
+						} elseif($distance >= 0.38) {
+							$this->flyChances += 2;
+						} elseif($distance >= 0.36) {
+							$this->flyChances += 1;
+						}
+					}
+				} else {
+					if($this->flyChances >= 1) {
+						$this->flyChances -= 1;
+					}
+				}
 			}
 
-			if($this->flyChances >= 5) {
+			if($this->flyChances >= 10) {
 				$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
 			}
 		}
+	}
+
+	public function onJump() {
+		$this->lastJump = microtime(true);
 	}
 
 	/**

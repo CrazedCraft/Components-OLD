@@ -78,6 +78,8 @@ class Main extends PluginBase {
 		"littlehorsey",
 		"jakeisthebest1",
 		"xxdoomrealxx",
+		"rustymcpe",
+		"tabbott",
 	]; // List of accounts with access to staff commands
 
 	/** Resource files & paths */

@@ -394,6 +394,10 @@ class LanguageManager {
 				"pattern" => '/\.me/',
 				"type" => self::TYPE_GENERAL
 			],
+			"dotco" => [
+				"pattern" => '/\.co/',
+				"type" => self::TYPE_GENERAL
+			],
 		];
 
 		foreach($list as $key => $pattern) {
