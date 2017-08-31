@@ -121,6 +121,13 @@ class Main extends PluginBase {
 	}
 
 	/**
+	 * @return array
+	 */
+	public static function getStaffNames() {
+		return self::$staff;
+	}
+
+	/**
 	 * Check to see if a player is staff
 	 *
 	 * @param Player|string $player

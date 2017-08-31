@@ -21,6 +21,7 @@ namespace core;
 use core\entity\antihack\KillAuraDetector;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
+use core\language\LanguageUtils;
 use core\task\CheckMessageTask;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
@@ -622,7 +623,10 @@ class CorePlayer extends Player {
 	 * Checks the amount of times a player has triggered a kill aura detector and handles the result accordingly
 	 */
 	public function checkKillAuraTriggers() {
-		if($this->killAuraTriggers >= 12) $this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
+		if($this->killAuraTriggers >= 12) {
+			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected kill-aura!");
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
+		}
 	}
 
 	/**
@@ -648,7 +652,7 @@ class CorePlayer extends Player {
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(-0.5, 3.5, -0));
+			$entity->setOffset(new Vector3(-0.5, 4.5, -0));
 		} else {
 			$entity->kill();
 		}
@@ -785,18 +789,19 @@ class CorePlayer extends Player {
 					$attacker = $source->getDamager();
 					if($attacker instanceof CorePlayer) {
 						$distance = $this->distance($attacker);
-						if($distance >= 5) {
+						if($distance >= 6.5 and $this->getPing() <= 200) {
 							$attacker->reachChances += 1;
-						} elseif($distance >= 8) {
+						} elseif($distance >= 8 and $this->getPing() <= 600) {
 							$attacker->reachChances += 2;
-						} elseif($distance >= 10) {
+						} elseif($distance >= 12) {
 							$attacker->reachChances += 4;
 						} else {
 							$attacker->reachChances--;
 						}
 
 						if($attacker->reachChances >= 12) {
-							$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
+							Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected reach!");
+							$attacker->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
 						}
 					}
 				}
@@ -817,20 +822,25 @@ class CorePlayer extends Player {
 		if($forReal) return parent::kill();
 		$this->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
 		$this->setHealth($this->getMaxHealth());
-		$inv = $this->getInventory();
-		if($inv instanceof PlayerInventory) $this->getInventory()->clearAll();
 		return true;
 	}
 
 	public function onUpdate($currentTick) {
-		if($currentTick % 20 == 0) { // only check ping every second (20 ticks)
+		if($currentTick % 100 == 0) { // only check ping every 5 seconds (100 ticks)
 			if($this->getPing() >= 1000) {
 				if($this->getPing() >= 2000) {
+					if($this->pingChances <= 0) {
+						$this->sendMessage(LanguageUtils::translateColors("&c[&6WARNING&c] &rYour ping is above 2000ms, you will be kicked soon if it does not improve."));
+					}
 					$this->pingChances += 2;
 				} else {
+					if($this->pingChances <= 0) {
+						$this->sendMessage(LanguageUtils::translateColors("&c[&6WARNING&c] &rYour ping is above 1000ms, you will be kicked soon if it does not improve."));
+					}
 					$this->pingChances += 1;
 				}
-				if($this->pingChances >= 6) {
+				if($this->pingChances >= 12) {
+					Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for high ping ({$this->getPing()}ms)!");
 					$this->kick("You have been kicked due to your ping ({$this->getPing()}ms)");
 				}
 			} else {

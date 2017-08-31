@@ -29,6 +29,7 @@ use pocketmine\utils\TextFormat as TF;
 class Utils {
 
 	const PREFIX = TF::BOLD . TF::GOLD . "CC" . TF::RESET . TF::YELLOW . "> " . TF::RESET;
+	const STAFF_PREFIX = TF::GRAY . "[" . TF::AQUA . "STAFF" . TF::GRAY . "] " . TF::RESET;
 
 	/**
 	 * Get a vector instance from a string
@@ -175,6 +176,21 @@ class Utils {
 		$pk = new UpdateBlockPacket();
 		$pk->records[] = [$pos->x, $pos->z, $pos->y, $id, $damage, UpdateBlockPacket::FLAG_PRIORITY];
 		$player->dataPacket($pk);
+	}
+
+	/**
+	 * Sends a message to all online staff members
+	 *
+	 * @param string $message
+	 */
+	public static function broadcastStaffMessage(string $message) {
+		$message = self::STAFF_PREFIX . LanguageUtils::translateColors($message);
+		foreach(Main::getStaffNames() as $name) {
+			$p = Server::getInstance()->getPlayer($name);
+			if($p instanceof CorePlayer and $p->isOnline()) {
+				$p->sendMessage($message);
+			}
+		}
 	}
 
 	/**
