@@ -37,12 +37,14 @@ abstract class GUIItem extends Item {
 	/** Time in which a user has to double click the item */
 	const DOUBLE_CLICK_TIME = 20;
 
-	private static $cooldowns = [];
-	protected $clickCount = 0;
-	protected $lastClick = 0;
-
 	/** @var ContainerGUI */
 	private $parent;
+
+	/** @var string */
+	private $previewName = "";
+
+	/** @var string */
+	private $previewDescription = "";
 
 	/**
 	 * GUIItem constructor
@@ -53,6 +55,8 @@ abstract class GUIItem extends Item {
 	public function __construct(Item $item, ContainerGUI $parent = null) {
 		parent::__construct($item->getId(), $item->getDamage(), $item->getCount(), $item->getName());
 		$this->parent = $parent;
+		$this->previewName = $this->getName(); // give the name a default value so we don't need to fetch it every time
+		$this->previewDescription = LanguageManager::getInstance()->translate("GUI_ITEM_TAP_GROUND"); // give the description a default value so we don't need to fetch it every time
 	}
 
 	/**
@@ -60,59 +64,92 @@ abstract class GUIItem extends Item {
 	 * @param bool $force
 	 */
 	final public function handleClick(CorePlayer $player, bool $force = false) {
-		$time =  microtime(true);
-		$this->checkCooldowns($time);
+		$time = microtime(true);
 		$lang = $player->getCore()->getLanguageManager();
-		if($this->clickCount == 0 and !$force) {
-			$player->sendPopup($this->getPreview($player));
-			$this->clickCount++;
+		$cooldownTime = $player->getGuiCooldown(self::GUI_ITEM_ID);
+		$diff = floor($cooldownTime - $time);
+		if($diff <= 0) {
+			$player->setGuiCooldown($time + $this->getCooldown(), self::GUI_ITEM_ID);
+			$this->onClick($player);
 		} else {
-			$cooldownTime = $this->getCooldownTime($player);
-			if($this->getCooldown() > 0 and $time >= $cooldownTime) {
-				$this->clickCount = 0;
-				$this->lastClick = 0;
-				self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID] = $time + $this->getCooldown();
-				$this->onClick($player);
-			} else {
-				$player->sendPopup($lang->translateForPlayer($player, "GUI_ITEM_COOLDOWN", [Utils::getTimeString(floor($cooldownTime - $time), false)]));
-			}
+			$player->sendPopup($lang->translateForPlayer($player, "GUI_ITEM_COOLDOWN", [Utils::getTimeString($diff)]));
 		}
-		$this->lastClick = $time;
 	}
 
+	/**
+	 * Handles the clicking of a GUI item
+	 *
+	 * @param CorePlayer $player
+	 *
+	 * @return bool
+	 */
 	public function onClick(CorePlayer $player) {
 		return true;
 	}
 
-	public abstract function getCooldown() : int;
-
-	public function getPreview(CorePlayer $player) : string {
-		return LanguageUtils::centerPrecise($player->getCore()->getLanguageManager()->translateForPlayer($player, "GUI_ITEM_PREVIEW", [$this->getPreviewName($player), $this->getPreviewDescription($player)]), null);
-	}
-
-	public function getPreviewName(CorePlayer $player) : string {
-		return $this->getName();
-	}
-
-	public function getPreviewDescription(CorePlayer $player) : string {
-		return $player->getCore()->getLanguageManager()->translateForPlayer($player, "GUI_ITEM_TAP_GROUND");
-	}
-
-	final private function getCooldownTime(CorePlayer $player) {
-		if(isset(self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID])) {
-			return self::$cooldowns[$player->getUniqueId()->toString()][self::GUI_ITEM_ID];
-		}
+	/**
+	 * Cooldown time in seconds
+	 *
+	 * @return int
+	 */
+	public function getCooldown() : int {
 		return 0;
 	}
 
-	final private function checkCooldowns(int $time) {
-		foreach(self::$cooldowns as $plId => $nextUse) {
-			if($nextUse <= $time or Utils::getPlayerByUUID($plId) === null) {
-				unset(self::$cooldowns[$plId]);
-			}
+	/**
+	 * Display the preview to a player
+	 *
+	 * @param CorePlayer $player
+	 * @param bool $popupOnly
+	 */
+	final public function sendPreview(CorePlayer $player, $popupOnly = false) {
+		if($popupOnly) {
+			$player->sendPopup(LanguageUtils::centerPrecise($player->getCore()->getLanguageManager()->translateForPlayer($player, "GUI_ITEM_PREVIEW", [$this->getPreviewName($player), $this->getPreviewDescription($player)]), null));
+		} else {
+			$player->sendTip($this->getPreviewName($player));
+			$player->sendPopup($this->getPreviewDescription($player));
 		}
 	}
 
+	/**
+	 * Name of the item
+	 *
+	 * @param CorePlayer $player
+	 *
+	 * @return string
+	 */
+	public function getPreviewName(CorePlayer $player) : string {
+		return $this->previewName;
+	}
+
+	/**
+	 * @param string $value
+	 */
+	public function setPreviewName(string $value) {
+		$this->previewName = $value;
+	}
+
+	/**
+	 * Description of the item
+	 *
+	 * @param CorePlayer $player
+	 *
+	 * @return string
+	 */
+	public function getPreviewDescription(CorePlayer $player) : string {
+		return $this->previewDescription;
+	}
+
+	/**
+	 * @param string $value
+	 */
+	public function setPreviewDescription(string $value) {
+		$this->previewDescription = $value;
+	}
+
+	/**
+	 * Give the item an enchantment effect
+	 */
 	public function giveEnchantmentEffect() {
 		$tag = $this->getNamedTag();
 		$tag->ench = new Enum("ench", [
@@ -125,9 +162,16 @@ abstract class GUIItem extends Item {
 		$this->setNamedTag($tag);
 	}
 
+	/**
+	 * Remove an enchantment effect from the item
+	 */
 	public function removeEnchantmentEffect() {
 		$tag = $this->getNamedTag();
-		unset($tag->ench);
+		foreach($tag["ench"] as $key => $compound) {
+			if($compound["id"]->getValue() === -1) {
+				unset($tag->ench->{$key});
+			}
+		}
 		$this->setNamedTag($tag);
 	}
 

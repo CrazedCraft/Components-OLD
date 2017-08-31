@@ -333,13 +333,8 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$item = $event->getItem();
 		if($item instanceof GUIItem) {
-			$item->handleClick($player);
-		}/* else {
-			$orig = Item::get($item->getId(), $item->getDamage());
-			if(!($orig instanceof Item) or $item->getName() != $orig->getName()) {
-				$player->addPopup("ITEM_HELD", $item->getName(), 30, 0, 10);
-			}
-		}*/
+			$item->sendPreview($player);
+		}
 	}
 
 	/**

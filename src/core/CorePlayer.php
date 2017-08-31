@@ -141,6 +141,9 @@ class CorePlayer extends Player {
 	/** @var array */
 	private $guis = [];
 
+	/** @var string[] */
+	private $guiCooldowns = [];
+
 	/** @var array */
 	public $commandData = [];
 
@@ -376,6 +379,27 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @param string $id
+	 *
+	 * @return int|string
+	 */
+	public function getGuiCooldown(string $id = GUIItem::GUI_ITEM_ID) {
+		if($this->hasGuiCooldown($id)) {
+			return $this->guiCooldowns[$id];
+		}
+		return 0;
+	}
+
+	/**
+	 * @param string $id
+	 *
+	 * @return bool
+	 */
+	public function hasGuiCooldown(string $id = GUIItem::GUI_ITEM_ID) {
+		return isset($this->guiCooldowns[$id]);
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function hasPlayersVisible() {
@@ -602,6 +626,14 @@ class CorePlayer extends Player {
 		}
 
 		throw new \ErrorException("Attempted to overwrite existing GUI container!");
+	}
+
+	/**
+	 * @param int $time
+	 * @param string $id
+	 */
+	public function setGuiCooldown(int $time, string $id = GUIItem::GUI_ITEM_ID) {
+		$this->guiCooldowns[$id] = $time;
 	}
 
 	/**

@@ -21,7 +21,7 @@ namespace core\network;
 /**
  * Class that represents a group (node) of servers, usually each mini-game has it's own node
  */
-class NetworkNode {
+class NetworkNode implements NodeConstants {
 
 	/** @var string */
 	private $name;

@@ -122,30 +122,17 @@ class Utils {
 	}
 
 	/**
-	 * @param $time
-	 * @param bool $inTicks
+	 * @param int $time
 	 *
 	 * @return string
 	 */
-	public static function getTimeString($time, bool $inTicks = true) {
+	public static function getTimeString(int $time) {
 		if($time <= 0) {
 			return "0 seconds";
 		}
-		$sec = floor($inTicks ? $time / 20 : $time); // Convert to seconds
-		$min = floor($sec / 60);
-		if($sec > 0 and ($sec % 60) == 0) { // If it is exactly a multiple of 60
-			$timeStr = $min . " minute" . ($min == 1 ? "" : "s");
-		} else {
-			// If more than 1 min but not exactly a minute
-			$secLeft = $sec - ($min * 60);
-			$timeStr = "";
-			if($min > 0) {
-				$timeStr = $min . " minute" . ($min == 1 ? "" : "s") . " ";
-			}
-			$timeStr .= $secLeft . " second" . ($secLeft == 1 ? "" : "s");
-		}
-		trim($timeStr);
-		return $timeStr;
+		$min = (int) gmdate("i", $time);
+		$sec = (int) gmdate("s", $time);
+		return rtrim(($min > 0 ? $min . "minute" . ($min == 1 ? "," : "s,") : "") . ($sec > 0 ? $sec . " second" . ($sec == 1 ? "" : "") : ""), ",");
 
 	}
 
