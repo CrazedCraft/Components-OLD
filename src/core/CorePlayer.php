@@ -817,7 +817,7 @@ class CorePlayer extends Player {
 			if(!$source->isCancelled()) {
 				$this->lastDamagedTime = microtime(true);
 
-				if($source instanceof EntityDamageByEntityEvent) {
+				if($source instanceof EntityDamageByEntityEvent and $source->getCause() === EntityDamageEvent::CAUSE_ENTITY_ATTACK) {
 					$attacker = $source->getDamager();
 					if($attacker instanceof CorePlayer) {
 						$distance = $this->distance($attacker);
