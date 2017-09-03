@@ -64,6 +64,7 @@ abstract class ChestGUI extends ChestInventory implements ContainerGUI {
 
 	public function onOpen(Player $who) {
 		$this->lastOpenPos = $who->getPosition()->subtract(0.5, 4, 0.5);
+		$this->lastOpenPos = $this->lastOpenPos->setComponents(intval($this->lastOpenPos->x), intval($this->lastOpenPos->y), intval($this->lastOpenPos->z));
 		$this->fakeChest->setComponents($this->lastOpenPos->x, $this->lastOpenPos->y, $this->lastOpenPos->z);
 		$this->fakeChest->spawnTo($who);
 		$block = $who->getLevel()->getBlock($this->lastOpenPos);

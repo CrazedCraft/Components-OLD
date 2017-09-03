@@ -45,7 +45,7 @@ class FloatingText {
 	public function __construct(Position $pos, $text) {
 		$this->pos = $pos;
 		$this->text = $text;
-		$this->eid = bcadd("1095216660480", mt_rand(0, 0x7fffffff));
+		$this->eid = Entity::$entityCount++;
 		$this->spawnToAll();
 		Main::getInstance()->floatingText[] = $this;
 	}

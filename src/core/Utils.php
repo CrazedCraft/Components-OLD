@@ -39,7 +39,7 @@ class Utils {
 	 */
 	public static function parseVector(string $string) {
 		$data = explode(",", str_replace(" ", "", $string));
-		return new Vector3($data[0], $data[1], $data[2]);
+		return new Vector3(floatval($data[0]), floatval($data[1]), floatval($data[2]));
 	}
 
 	/**
