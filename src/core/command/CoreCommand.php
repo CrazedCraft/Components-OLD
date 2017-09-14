@@ -33,7 +33,7 @@ abstract class CoreCommand extends Command implements PluginIdentifiableCommand 
 	 * @param Main $plugin
 	 * @param string $name
 	 * @param null|string $description
-	 * @param array|\string[] $usage
+	 * @param string $usage
 	 * @param array ...$aliases
 	 */
 	public function __construct(Main $plugin, $name, $description, $usage, array $aliases = []) {
