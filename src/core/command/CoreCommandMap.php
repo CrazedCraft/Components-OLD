@@ -50,8 +50,8 @@ class CoreCommandMap {
 		"default" => "default.json",
 		"staff" => "staff.json",
 		"duels" => "duels.json",
-		"cpvp" => "cpvp.json",
-		"cprison" => "cprison.json",
+		"cpvp" => "classic_pvp.json",
+		"cprison" => "classic_prison.json",
 	];
 
 	/**

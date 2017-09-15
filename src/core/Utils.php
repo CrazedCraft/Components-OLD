@@ -46,15 +46,12 @@ class Utils {
 	 * Get a position instance from a string
 	 *
 	 * @param string $string
-	 * @return Position|Vector3
+	 * @return Position
 	 */
 	public static function parsePosition(string $string) {
 		$data = explode(",", str_replace(" ", "", $string));
-		$level = Server::getInstance()->getLevelByName($data[3]);
-		if($level instanceof Level) {
-			return new Position($data[0], $data[1], $data[2], $level);
-		}
-		return self::parseVector($string);
+		$level = Server::getInstance()->getLevelByName($data[3] ?? "");
+		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), $level ?? Server::getInstance()->getDefaultLevel());
 	}
 
 	/**
