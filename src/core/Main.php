@@ -110,7 +110,7 @@ class Main extends PluginBase {
 		$this->getServer()->getNetwork()->setName($this->languageManager->translate("SERVER_NAME", "en"));
 		$this->restartTask = new RestartTask($this);
 		$server = $this->getServer();
-		$this->getLogger()->info("Done (" . round(microtime(true) - $this->loadTime, 3) . "s)! Components enabled on {$server->getIp()}:{$server->getPort()} with {$server->getMaxPlayers()} slots!");
+		$this->getLogger()->info("Enabled components! (" . round(microtime(true) - $this->loadTime, 3) . "s)! Components enabled on {$server->getIp()}:{$server->getPort()} with {$server->getMaxPlayers()} slots!");
 	}
 
 	/**
