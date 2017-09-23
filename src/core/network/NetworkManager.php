@@ -18,6 +18,9 @@
 
 namespace core\network;
 
+use core\database\network\mysql\MySQLNetworkDatabase;
+use core\database\network\mysql\task\FetchNodeListRequest;
+use core\database\network\mysql\task\SyncRequest;
 use core\Main;
 
 class NetworkManager {
@@ -25,17 +28,11 @@ class NetworkManager {
 	/** @var Main */
 	private $plugin;
 
-	/** @var NetworkServer */
-	private $server;
+	/** @var NetworkMap */
+	private $map;
 
-	/** @var NetworkNode[] */
-	private $nodes = [];
-
-	/** @var int */
-	private $onlinePlayerCount = 0;
-
-	/** @var int */
-	private $maxPlayerCount = 100;
+	/** @var bool */
+	public $hasNodes = false;
 
 	/** @var bool */
 	private $closed = false;
@@ -44,7 +41,9 @@ class NetworkManager {
 		$this->plugin = $plugin;
 		$settings = $plugin->getSettings();
 		$server = $plugin->getServer();
-		$this->server = new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true);
+		$this->map = new NetworkMap();
+		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
+		$plugin->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($plugin->getDatabaseManager()->getNetworkDatabase(), $this->map));
 	}
 
 	/**
@@ -58,14 +57,28 @@ class NetworkManager {
 	 * @return NetworkServer
 	 */
 	public function getServer() {
-		return $this->server;
+		return $this->map->getServer();
+	}
+
+	/**
+	 * @return NetworkMap
+	 */
+	public function getMap() : NetworkMap {
+		return $this->map;
+	}
+
+	/**
+	 * @param NetworkMap $map
+	 */
+	public function setMap(NetworkMap $map) {
+		$this->map = $map;
 	}
 
 	/**
 	 * @return NetworkNode[]
 	 */
 	public function getNodes() {
-		return $this->nodes;
+		return $this->map->getNodes();
 	}
 
 	/**
@@ -74,7 +87,7 @@ class NetworkManager {
 	 * @return int
 	 */
 	public function getOnlinePlayers() : int {
-		return $this->onlinePlayerCount;
+		return $this->map->getOnlinePlayerCount();
 	}
 
 	/**
@@ -83,7 +96,7 @@ class NetworkManager {
 	 * @return int
 	 */
 	public function getMaxPlayers() : int {
-		return $this->maxPlayerCount;
+		return $this->map->getMaxPlayerCount();
 	}
 
 	/**
@@ -94,38 +107,20 @@ class NetworkManager {
 	 * @param NetworkNode[] $nodes
 	 */
 	public function setNodes(array $nodes) {
-		foreach($nodes as $node) {
-			$this->nodes[$node->getName()] = $node;
-		}
+		$this->map->setNodes($nodes);
 	}
 
-	/**
-	 * Callback for network sync
-	 *
-	 * @param NetworkServer[] $servers
-	 */
-	public function networkSyncCallback(array $servers) {
-		foreach($servers as $server) {
-			if(isset($this->nodes[$server->getNode()])) {
-				$this->nodes[$server->getNode()]->updateServer($server);
-			}
+	public function doNetworkSync(MySQLNetworkDatabase $db) {
+		if($this->hasNodes) {
+			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($db, $this->map));
 		}
-		$this->recalculateSlots();
 	}
 
 	/**
 	 * Recalculate the global slot counts for the network
 	 */
 	public function recalculateSlots() {
-		$online = $this->server->getOnlinePlayers();
-		$max = $this->server->getMaxPlayers();
-		foreach($this->nodes as $node) {
-			$node->recalculateSlotCounts();
-			$online += $node->getOnlinePlayers();
-			$max += $node->getMaxPlayers();
-		}
-		$this->onlinePlayerCount = $online;
-		$this->maxPlayerCount = $max;
+		$this->map->recalculateSlots();
 	}
 
 	/**
@@ -134,12 +129,7 @@ class NetworkManager {
 	public function close() {
 		if(!$this->closed) {
 			$this->closed = true;
-			foreach($this->nodes as $node) {
-				unset($this->nodes[$node->getName()]);
-				$node->close();
-			}
-			$this->server->close();
-			unset($this->plugin, $this->server, $this->nodes, $this->onlinePlayerCount, $this->maxPlayerCount);
+			unset($this->plugin, $this->map);
 		}
 	}
 

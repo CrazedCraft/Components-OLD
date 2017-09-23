@@ -135,6 +135,21 @@ class NetworkNode implements NodeConstants {
 	}
 
 	/**
+	 * Try and find a server on this node
+	 *
+	 * @param int $id
+	 *
+	 * @return NetworkServer|mixed|null
+	 */
+	public function findServer(int $id) {
+		if(isset($this->servers[$id]) and $this->servers[$id] instanceof NetworkServer) {
+			return $this->servers[$id];
+		}
+
+		return null;
+	}
+
+	/**
 	 * Replace an existing network server with an updated version
 	 *
 	 * @param NetworkServer $server

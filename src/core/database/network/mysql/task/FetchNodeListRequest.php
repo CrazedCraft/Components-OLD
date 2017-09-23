@@ -21,26 +21,41 @@ namespace core\database\network\mysql\task;
 use core\database\network\mysql\MySQLNetworkDatabase;
 use core\database\network\mysql\MySQLNetworkRequest;
 use core\Main;
+use core\network\NetworkMap;
 use core\network\NetworkNode;
-use pocketmine\plugin\PluginException;
+use core\network\NetworkServer;
 use pocketmine\Server;
+use pocketmine\utils\PluginException;
 
 class FetchNodeListRequest extends MySQLNetworkRequest {
 
-	public function __construct(MySQLNetworkDatabase $database) {
+	/** @var string */
+	private $map;
+
+	public function __construct(MySQLNetworkDatabase $database, NetworkMap $map) {
 		parent::__construct($database->getCredentials());
+		$this->map = serialize($map);
 	}
 
 	public function onRun() {
 		$mysqli = $this->getMysqli();
-		$result = $mysqli->query("SELECT * FROM network_nodes WHERE max_servers > 0");
+		$map = unserialize($this->map);
+		/** @var NetworkServer $server */
+		$server = $map->getServer();
+		$result = $mysqli->query("SELECT id FROM network_servers WHERE node = {$server->getNode()} AND node_id = {$server->getId()}");
+		if($result instanceof \mysqli_result) {
+			$server->setNetworkId($result["id"]);
+		}
+		$result = $mysqli->query("SELECT node_name, node_display FROM network_nodes WHERE max_servers > 0");
 		if($result instanceof \mysqli_result) {
 			$nodes = [];
-			while($row = $result->fetch_assoc()) {
-				$nodes[] = serialize(new NetworkNode($row["node_name"], $row["node_display"]));
+			while(is_array($row = $result->fetch_assoc())) {
+				$nodes[$row["node_name"]] = new NetworkNode($row["node_name"], $row["node_display"]);
+				var_dump("Added new node! Name: {$row["node_name"]}, Display: {$row["node_display"]}");
 			}
 			$result->free();
-			$this->setResult([self::SUCCESS, $nodes]);
+			$map->setNodes($nodes);
+			$this->setResult([self::SUCCESS, $map]);
 			return;
 		}
 		$this->setResult([self::MYSQLI_ERROR, []]);
@@ -55,7 +70,8 @@ class FetchNodeListRequest extends MySQLNetworkRequest {
 			$result = $this->getResult();
 			switch((is_array($result) ? $result[0] : $result)) {
 				case self::SUCCESS:
-					$plugin->getNetworkManager()->setNodes(array_map("unserialize", $result[1]));
+					$plugin->getNetworkManager()->setMap($result[1]);
+					$plugin->getNetworkManager()->hasNodes = true;
 					$server->getLogger()->debug("Successfully completed FetchNodeListRequest!");
 					return;
 				case self::MYSQLI_ERROR:

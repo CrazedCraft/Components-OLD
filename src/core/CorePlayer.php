@@ -24,6 +24,7 @@ use core\gui\item\GUIItem;
 use core\language\LanguageUtils;
 use core\task\CheckMessageTask;
 use pocketmine\block\Block;
+use pocketmine\block\Slab;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
@@ -33,17 +34,14 @@ use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\inventory\PlayerInventory;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\network\protocol\AvailableCommandsPacket;
-use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
-use pocketmine\Server;
 use pocketmine\utils\PluginException;
 
 class CorePlayer extends Player {
@@ -118,6 +116,9 @@ class CorePlayer extends Player {
 	private $lastDamagedTime = 0;
 
 	/** @var int */
+	private $lastMoveTime = 0;
+
+	/** @var int */
 	private $loginAttempts = 0;
 
 	/** @var int */
@@ -125,9 +126,6 @@ class CorePlayer extends Player {
 
 	/** @var int */
 	private $flyChances = 0;
-
-	/** @var int */
-	private $lastJump = 0;
 
 	/** @var int */
 	public $reachChances = 0;
@@ -341,6 +339,13 @@ class CorePlayer extends Player {
 	 */
 	public function getLastMessageTime() {
 		return $this->lastMessageTime;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLastMoveTime() : int {
+		return $this->lastMoveTime;
 	}
 
 	/**
@@ -947,46 +952,38 @@ class CorePlayer extends Player {
 	 * @param PlayerMoveEvent $event
 	 */
 	public function onMove(PlayerMoveEvent $event) {
-		$y = $event->getTo()->getY();
-		if($y <= 0 or $y >= 156) {
-			$this->kill();
-		} else {
-			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(),$this->getFloorY() - 1,$this->getFloorZ()));
-			$distance = round($event->getTo()->getY() - $event->getFrom()->getY(), 3);
-			if($distance >= 0.05 and microtime(true) - $this->lastJump >= 5) {
-				if($block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5) {
-					$second = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 2, $this->getFloorZ()));
-					if($second->getId() === Block::AIR) {
-						$third = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 3, $this->getFloorZ()));
-						if($third->getId() === Block::AIR) {
-							$this->flyChances += 2;
-						} else {
-							$this->flyChances += 1;
-						}
+		$this->lastMoveTime = $time = microtime(true);
+		$distance = round($event->getTo()->getY() - $event->getFrom()->getY(), 3);
+		if($distance >= 0.05 and $time - $this->lastJumpTime >= 5) {
+			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 1, $this->getFloorZ()));
+			if(!$block instanceof Slab and $block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5) {
+				$second = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 2, $this->getFloorZ()));
+				if($second->getId() === Block::AIR) {
+					$third = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 3, $this->getFloorZ()));
+					if($third->getId() === Block::AIR) {
+						$this->flyChances += 2;
 					} else {
-						if($distance >= 0.5) {
-							$this->flyChances += 5;
-						} elseif($distance >= 0.38) {
-							$this->flyChances += 2;
-						} elseif($distance >= 0.36) {
-							$this->flyChances += 1;
-						}
+						$this->flyChances += 1;
 					}
 				} else {
-					if($this->flyChances >= 1) {
-						$this->flyChances -= 1;
+					if($distance >= 0.5) {
+						$this->flyChances += 5;
+					} elseif($distance >= 0.38) {
+						$this->flyChances += 2;
+					} elseif($distance >= 0.36) {
+						$this->flyChances += 1;
 					}
 				}
-			}
-
-			if($this->flyChances >= 10) {
-				$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
+			} else {
+				if($this->flyChances >= 1) {
+					$this->flyChances -= 1;
+				}
 			}
 		}
-	}
 
-	public function onJump() {
-		$this->lastJump = microtime(true);
+		if($this->flyChances >= 12) {
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
+		}
 	}
 
 	/**

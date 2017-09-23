@@ -98,10 +98,10 @@ class Main extends PluginBase {
 		set_error_handler([$this, "errorHandler"], E_ALL);
 		$this->getLogger()->info("Enabling command map...");
 		$this->setCommandMap();
-		$this->getLogger()->info("Enabling network manager...");
-		$this->setNetworkManager();
 		$this->getLogger()->info("Initializing database manager...");
 		$this->setDatabaseManager();
+		$this->getLogger()->info("Enabling network manager...");
+		$this->setNetworkManager();
 		$this->getLogger()->info("Setting event listener...");
 		$this->setListener();
 		$this->getLogger()->info("Enabling language manager...");

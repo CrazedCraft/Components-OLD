@@ -113,8 +113,9 @@ class CoreListener implements Listener {
 	 * @param QueryRegenerateEvent $event
 	 */
 	public function onQueryRegenerate(QueryRegenerateEvent $event) {
-		$event->setPlayerCount($this->plugin->getNetworkManager()->getOnlinePlayers());
-		$event->setMaxPlayerCount($this->plugin->getNetworkManager()->getMaxPlayers());
+		$this->plugin->getNetworkManager()->getMap()->getServer()->setPlayerStatus(count($this->plugin->getServer()->getOnlinePlayers()), $this->plugin->getServer()->getMaxPlayers()); // set this servers player counts
+		$event->setPlayerCount($this->plugin->getNetworkManager()->getOnlinePlayers()); // set the servers online players to the network value
+		$event->setMaxPlayerCount($this->plugin->getNetworkManager()->getMaxPlayers()); // set the available slots to the network value
 	}
 
 	/**

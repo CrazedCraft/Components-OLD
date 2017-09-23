@@ -38,14 +38,11 @@ class MySQLNetworkDatabase extends MySQLDatabase implements NetworkDatabase {
 	 */
 	public function init() {
 		//$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new CheckDatabaseRequest($this));
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($this));
 		$this->updateScheduler = new NetworkScheduler($this->getPlugin());
 	}
 
 	public function sync() {
-		$server = $this->getPlugin()->getNetworkManager()->getServer();
-		$server->setPlayerStatus(count($this->getPlugin()->getServer()->getOnlinePlayers()), $this->getPlugin()->getServer()->getMaxPlayers());
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($this, $server));
+		$this->getPlugin()->getNetworkManager()->doNetworkSync($this);
 	}
 
 	public function close() {

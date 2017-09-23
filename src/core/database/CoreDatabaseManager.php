@@ -105,7 +105,7 @@ class CoreDatabaseManager extends DatabaseManager {
 	}
 
 	/**
-	 * @return NetworkDatabase
+	 * @return NetworkDatabase|MySQLNetworkDatabase
 	 */
 	public function getNetworkDatabase() {
 		return $this->networkDatabase;
