@@ -42,9 +42,13 @@ class FetchNodeListRequest extends MySQLNetworkRequest {
 		$map = unserialize($this->map);
 		/** @var NetworkServer $server */
 		$server = $map->getServer();
-		$result = $mysqli->query("SELECT id FROM network_servers WHERE node = {$server->getNode()} AND node_id = {$server->getId()}");
+		$result = $mysqli->query("SELECT id FROM network_servers WHERE node = '{$server->getNode()}' AND node_id = {$server->getId()}");
+		var_dump("fetching fata for server with node: {$server->getNode()}, node_id: {$server->getId()}");
 		if($result instanceof \mysqli_result) {
-			$server->setNetworkId($result["id"]);
+			$data = $result->fetch_assoc();
+			$result->free();
+			var_dump("fetched server id: {$data["id"]}");
+			$server->setNetworkId($data["id"]);
 		}
 		$result = $mysqli->query("SELECT node_name, node_display FROM network_nodes WHERE max_servers > 0");
 		if($result instanceof \mysqli_result) {
