@@ -69,11 +69,8 @@ class BossBar {
 		$pk->speedZ = 0;
 		$pk->yaw = 0;
 		$pk->pitch = 0;
-		$flags = 0;
-		$flags |= 1 << Entity::DATA_FLAG_INVISIBLE;
-		$flags |= 1 << Entity::DATA_FLAG_SILENT;
 		$pk->metadata = [
-			Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],
+			Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_INVISIBLE, Entity::DATA_FLAG_SILENT]],
 			Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, "\n\n\n" . $this->text],
 			Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 			Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.1],
