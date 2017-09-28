@@ -193,18 +193,34 @@ class NetworkServer {
 	}
 
 	/**
-	 * Get the query to update this server in the network database
+	 * Execute the query to insert this server into the network database
+	 *
+	 * @param \mysqli $db
+	 *
+	 * @return \mysqli_stmt
+	 */
+	public function doInsertQuery(\mysqli $db) : \mysqli_stmt {
+		$stmt = $db->stmt_init();
+		$stmt->prepare("INSERT INTO network_servers (server_motd, node, node_id, address, server_port, online_players, max_players, player_list, last_sync, online) VALUES
+				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		$params = [$this->getName(), $this->getNode(), $this->getId(), $this->getHost(), $this->getPort(), $this->getOnlinePlayers(), $this->getMaxPlayers(), "[]", time(), $this->isOnline() ? 1 : 0];
+		$stmt->bind_param("ssisiiisii", ...$params);
+		$stmt->execute();
+		return $stmt;
+	}
+
+	/**
+	 * Execute the query to update this server in the network database
 	 *
 	 * @param \mysqli $db
 	 *
 	 * @return \mysqli_stmt
 	 */
 	public function doUpdateQuery(\mysqli $db) : \mysqli_stmt {
-		$stmt = $db->prepare("INSERT INTO network_servers (id, server_motd, node, node_id, address, server_port, online_players, max_players, player_list, last_sync, online) VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE id = ?, server_motd = ?, node = ?, node_id = ?, address = ?, server_port = ?, online_players = ?, max_players = ?, player_list = ?, last_sync = ?, online = ?");
-		$params = [$this->networkId, $this->getName(), $this->getNode(), $this->getId(), $this->getHost(), $this->getPort(), $this->getOnlinePlayers(), $this->getMaxPlayers(), "{}", time(), $this->isOnline() ? 1 : 0];
-		$stmt->bind_param(str_repeat("issisiiisii", 2), ...$params, ...$params);
+		$stmt = $db->stmt_init();
+		$stmt->prepare("UPDATE network_servers SET server_motd = ?, node = ?, node_id = ?, address = ?, server_port = ?, online_players = ?, max_players = ?, player_list = ?, last_sync = ?, online = ? WHERE id = ? ");
+		$params = [$this->getName(), $this->getNode(), $this->getId(), $this->getHost(), $this->getPort(), $this->getOnlinePlayers(), $this->getMaxPlayers(), "[]", time(), ($this->isOnline() ? 1 : 0), $this->networkId];
+		$stmt->bind_param("ssisiiisiii", ...$params);
 		$stmt->execute();
 		return $stmt;
 	}

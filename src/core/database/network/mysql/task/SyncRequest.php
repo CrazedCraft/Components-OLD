@@ -43,33 +43,32 @@ class SyncRequest extends MySQLNetworkRequest {
 			$map = unserialize($this->map);
 			if(!$this->updateServer($mysqli, $map)) {
 				$this->setResult(self::CONNECTION_ERROR);
-				return false;
+				return;
 			}
 			$this->fetchServers($mysqli, $map);
 			$map->recalculateSlots();
 			$this->setResult([self::SUCCESS, $map]);
 		} catch(\Exception $e) {
-			var_dump($e);
-			return false;
+			$this->getLogger()->warning("Encountered error whilst trying to perform network sync");
+			$this->getLogger()->logException($e);
 		}
 	}
 
 	public function updateServer(\mysqli $mysqli, NetworkMap $map) {
-		var_dump(__FUNCTION__ . " BEGIN");
 		try {
-			$map->getServer()->doUpdateQuery($mysqli);
+			$result = $map->getServer()->doUpdateQuery($mysqli);
+			// TODO: Check for mysqli errors
 		} catch(\Exception $e) {
-			var_dump($e);
-			return false;
+			$this->getLogger()->warning("Could not update server for network sync");
+			$this->getLogger()->logException($e);
 		}
-		var_dump(__FUNCTION__ . " END");
 		return true;
 	}
 
 	public function fetchServers(\mysqli $mysqli, NetworkMap $map) {
-		var_dump(__FUNCTION__ . " BEGIN");
 		try {
 			$result = $map->doFetchRequest($mysqli);
+			// TODO: Check for mysqli errors
 			if($result instanceof \mysqli_stmt) {
 				$result = $result->get_result();
 				while(is_array($row = $result->fetch_assoc())) {
@@ -77,22 +76,28 @@ class SyncRequest extends MySQLNetworkRequest {
 					if($node instanceof NetworkNode) {
 						$server = $node->findServer($row["node_id"]);
 						if($server instanceof NetworkServer) {
-							$node->addServer(new NetworkServer($row["node_id"], $row["server_motd"], $row["node"], $row["address"], $row["server_port"], $row["max_players"], $row["online_players"], json_decode($row["player_list"], true), $row["last_sync"], (bool) $row["online"]));
+							if($server->isOnline()) {
+								$server->setPlayerStatus($row["online_players"], $row["max_players"]);
+								$server->setOnline($row["online_players"]);
+							} else { // address, motd or port could be different from last time it was online
+								// TODO: Fix this hack and add ability to fully update the status of a server
+								$node->removeServer($server);
+								$node->addServer(new NetworkServer($row["node_id"], $row["server_motd"], $row["node"], $row["address"], $row["server_port"], $row["max_players"], $row["online_players"], json_decode($row["player_list"], true), $row["last_sync"], (bool) $row["online"]));
+							}
 						} else {
 							$node->addServer(new NetworkServer($row["node_id"], $row["server_motd"], $row["node"], $row["address"], $row["server_port"], $row["max_players"], $row["online_players"], json_decode($row["player_list"], true), $row["last_sync"], (bool) $row["online"]));
-							var_dump("Created new network server! ID: {$row["node_id"]}, Node: {$row["node"]}");
 						}
 					} else {
-						var_dump("Could not find node! ID: Node name: {$row["node"]}");
+						// TODO: Add support for new nodes added on the fly
+						$this->getLogger()->warning("Could not find network node! Node name: {$row["node"]}");
 					}
 				}
 				$result->free();
 			}
 		} catch(\Exception $e) {
-			var_dump($e);
-			return false;
+			$this->getLogger()->warning("Could not fetch servers for network sync");
+			$this->getLogger()->logException($e);
 		}
-		var_dump(__FUNCTION__ . " END");
 		return $map;
 	}
 
@@ -108,7 +113,8 @@ class SyncRequest extends MySQLNetworkRequest {
 						return;
 				}
 			} else {
-				$server->getLogger()->debug("Network map has disappeared!");
+				$server->getLogger()->debug("Network map has disappeared while trying to complete sync request!!");
+				throw new PluginException("Network map has disappeared!");
 			}
 		} else {
 			$server->getLogger()->debug("Attempted to complete SyncRequest while Components plugin isn't enabled!");

@@ -150,15 +150,6 @@ class NetworkNode implements NodeConstants {
 	}
 
 	/**
-	 * Replace an existing network server with an updated version
-	 *
-	 * @param NetworkServer $server
-	 */
-	public function updateServer(NetworkServer $server) {
-		$this->servers[$server->getId()] = $server;
-	}
-
-	/**
 	 * Remove a server from the node
 	 *
 	 * @param NetworkServer $server

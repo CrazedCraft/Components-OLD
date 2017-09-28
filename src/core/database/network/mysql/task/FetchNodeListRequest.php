@@ -43,19 +43,23 @@ class FetchNodeListRequest extends MySQLNetworkRequest {
 		/** @var NetworkServer $server */
 		$server = $map->getServer();
 		$result = $mysqli->query("SELECT id FROM network_servers WHERE node = '{$server->getNode()}' AND node_id = {$server->getId()}");
-		var_dump("fetching fata for server with node: {$server->getNode()}, node_id: {$server->getId()}");
 		if($result instanceof \mysqli_result) {
 			$data = $result->fetch_assoc();
 			$result->free();
-			var_dump("fetched server id: {$data["id"]}");
-			$server->setNetworkId($data["id"]);
+			if(($id = $data["id"]) !== -1) {
+				$server->setNetworkId($data["id"]);
+			}
 		}
+
+		if($server->getNetworkId() === -1) { // if the server hasn't been added to the database before
+			$server->doInsertQuery($mysqli);
+		}
+
 		$result = $mysqli->query("SELECT node_name, node_display FROM network_nodes WHERE max_servers > 0");
 		if($result instanceof \mysqli_result) {
 			$nodes = [];
 			while(is_array($row = $result->fetch_assoc())) {
 				$nodes[$row["node_name"]] = new NetworkNode($row["node_name"], $row["node_display"]);
-				var_dump("Added new node! Name: {$row["node_name"]}, Display: {$row["node_display"]}");
 			}
 			$result->free();
 			$map->setNodes($nodes);
