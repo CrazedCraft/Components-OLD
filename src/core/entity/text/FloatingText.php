@@ -100,9 +100,9 @@ class FloatingText {
 			$pk->pitch = 0;
 			$pk->item = Item::get(0);
 			$pk->metadata = [
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_CAN_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->text],
-				Entity::DATA_LEAD_HOLDER => [Entity::DATA_TYPE_LONG, -1],
+				Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],
 			];
 			$player->dataPacket($pk);

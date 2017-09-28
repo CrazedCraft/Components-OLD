@@ -75,7 +75,7 @@ class BossBar {
 		$pk->metadata = [
 			Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],
 			Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, "\n\n\n" . $this->text],
-			Entity::DATA_LEAD_HOLDER => [Entity::DATA_TYPE_LONG, -1],
+			Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 			Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.1],
 			Entity::DATA_BOUNDING_BOX_WIDTH => [Entity::DATA_TYPE_FLOAT, 0],
 			Entity::DATA_BOUNDING_BOX_HEIGHT => [Entity::DATA_TYPE_FLOAT, 0]

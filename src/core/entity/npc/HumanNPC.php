@@ -77,7 +77,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @return bool
 	 */
 	public function isNameTagVisible() {
-		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG);
+		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG);
 	}
 
 	/**
@@ -91,7 +91,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @param bool $value
 	 */
 	public function setNameTagVisible($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, $value);
+		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, $value);
 	}
 
 	/**
