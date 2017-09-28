@@ -12,41 +12,37 @@
  *
  * @author JackNoordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Created on 12/07/2016 at 9:11 PM
  *
  */
 
 namespace core\entity\text;
 
-use core\Main;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
-use pocketmine\level\Position;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\protocol\AddPlayerPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\Player;
-use pocketmine\Server;
 use pocketmine\utils\UUID;
 
 /**
- * Basic floating text entity that will display the same text to all players
+ * An advanced floating text implementation that allows the text to be unique for each player
  */
-class FloatingText extends Entity {
+class AdvancedFloatingText extends Entity {
 
-	/** @var string */
-	protected $text = "";
+	/** @var Callable */
+	private $callable = null;
 
 	/** @var UUID */
 	protected $uuid = null;
 
-	public function getText() : string {
-		return $this->text;
+	public function getText(Player $player) : string {
+		return call_user_func($this->callable, $player);
 	}
 
-	public function setText(string $value) {
-		$this->text = $value;
+	public function setCallable(Callable $callable) {
+		$this->callable = $callable;
 
 		$this->updateNameTag();
 	}
@@ -57,10 +53,10 @@ class FloatingText extends Entity {
 	protected function updateNameTag() {
 		$pk = new SetEntityDataPacket();
 		$pk->eid = $this->id;
-		$pk->metadata = [Entity::DATA_TYPE_STRING, $this->getText()];
 
 		foreach($this->hasSpawned as $viewer) {
 			if($viewer->isOnline()) {
+				$pk->metadata = [Entity::DATA_TYPE_STRING, $this->getText($viewer)];
 				$viewer->dataPacket($pk);
 			}
 		}
@@ -110,7 +106,7 @@ class FloatingText extends Entity {
 			$pk->item = Item::get(0);
 			$pk->metadata = [
 				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
-				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->getText()],
+				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->getText($player)],
 				Entity::DATA_LEAD_HOLDER => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],
 			];
