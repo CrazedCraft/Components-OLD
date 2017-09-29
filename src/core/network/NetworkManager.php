@@ -112,6 +112,8 @@ class NetworkManager {
 
 	public function doNetworkSync(MySQLNetworkDatabase $db) {
 		if($this->hasNodes) {
+			$server = $this->map->getServer();
+			$server->setPlayerStatus(count($this->plugin->getServer()->getOnlinePlayers()), $this->plugin->getServer()->getMaxPlayers());
 			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($db, $this->map));
 		}
 	}
