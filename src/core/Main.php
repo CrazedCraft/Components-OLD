@@ -140,7 +140,6 @@ class Main extends PluginBase {
 	public function onDisable() {
 		/** @var CorePlayer $p */
 		foreach($this->getServer()->getOnlinePlayers() as $p) $p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART"));
-		$this->errorLog->save(false);
 	}
 
 	/**
