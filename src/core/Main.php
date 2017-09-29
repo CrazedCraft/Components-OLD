@@ -40,9 +40,6 @@ class Main extends PluginBase {
 	private static $instance;
 
 	/** @var Config */
-	protected $errorLog;
-
-	/** @var Config */
 	private $settings;
 
 	/** @var CoreCommandMap */
@@ -84,7 +81,6 @@ class Main extends PluginBase {
 
 	/** Resource files & paths */
 	const SETTINGS_FILE = "Settings.yml";
-	const ERROR_REPORT_LOG = "error_log.json";
 
 	public function onLoad() {
 		$this->loadTime = microtime(true);
@@ -95,7 +91,6 @@ class Main extends PluginBase {
 
 	public function onEnable() {
 		Entity::registerEntity(KillAuraDetector::class, true);
-		set_error_handler([$this, "errorHandler"], E_ALL);
 		$this->getLogger()->info("Enabling command map...");
 		$this->setCommandMap();
 		$this->getLogger()->info("Initializing database manager...");
@@ -154,8 +149,6 @@ class Main extends PluginBase {
 	public function loadConfigs() {
 		$this->saveResource(self::SETTINGS_FILE);
 		$this->settings = new Config($this->getDataFolder() . self::SETTINGS_FILE, Config::YAML);
-		$this->saveResource(self::ERROR_REPORT_LOG);
-		$this->errorLog = new Config($this->getDataFolder() . self::ERROR_REPORT_LOG, Config::JSON);
 	}
 
 	/**
@@ -243,45 +236,6 @@ class Main extends PluginBase {
 		foreach($chunks as $chunk) {
 			$chunk->allowUnload = false;
 		}
-	}
-
-	/**
-	 * Our custom error handler
-	 *
-	 * @param $errno
-	 * @param $errstr
-	 * @param $errfile
-	 * @param $errline
-	 * @param $context
-	 * @param null $trace
-	 *
-	 * @return bool
-	 */
-	public function errorHandler($errno, $errstr, $errfile, $errline, $context, $trace = null) {
-		$errorConversion = [E_ERROR => "E_ERROR", E_WARNING => "E_WARNING", E_PARSE => "E_PARSE", E_NOTICE => "E_NOTICE", E_CORE_ERROR => "E_CORE_ERROR", E_CORE_WARNING => "E_CORE_WARNING", E_COMPILE_ERROR => "E_COMPILE_ERROR", E_COMPILE_WARNING => "E_COMPILE_WARNING", E_USER_ERROR => "E_USER_ERROR", E_USER_WARNING => "E_USER_WARNING", E_USER_NOTICE => "E_USER_NOTICE", E_STRICT => "E_STRICT", E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR", E_DEPRECATED => "E_DEPRECATED", E_USER_DEPRECATED => "E_USER_DEPRECATED",];
-		$errno = isset($errorConversion[$errno]) ? $errorConversion[$errno] : $errno;
-		if(($pos = strpos($errstr, "\n")) !== false) {
-			$errstr = substr($errstr, 0, $pos);
-		}
-
-		$error = "An $errno error happened: '$errstr' in '$errfile' at line $errline" . PHP_EOL;
-
-		$encoded = base64_encode($error);
-		if(!$this->errorLog->exists($encoded)) {
-			$this->getLogger()->debug("Logging error to log Error: {$error}");
-
-			$backtrace = "";
-			foreach(($trace = \core\Utils::getTrace($trace === null ? 3 : 0, $trace)) as $i => $line) {
-				$backtrace .= $line . PHP_EOL;
-			}
-
-			//$this->getServer()->getScheduler()->scheduleAsyncTask(new ReportErrorTask($error . PHP_EOL . $backtrace . PHP_EOL .  "Server: {$this->getServer()->getIp()}:{$this->getServer()->getPort()}"));
-
-			$this->errorLog->set($encoded, base64_encode($backtrace));
-			$this->errorLog->save(true);
-		}
-
-		return true;
 	}
 
 	/**
