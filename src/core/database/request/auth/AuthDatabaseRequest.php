@@ -12,21 +12,14 @@
  *
  * @author JackNoordhuis
  *
- * Created on 14/07/2016 at 4:28 PM
+ * Created on 29/09/2017 at 9:22 PM
  *
  */
 
-namespace core\database\rank;
+namespace core\database\request\auth;
 
-/**
- * All classes that implement a rank database MUST implement this class
- */
-interface RankDatabase {
+use core\database\request\MySQLDatabaseRequest;
 
-	public function load($player);
-
-	public function add($player, $rank);
-
-	public function remove($player, $rank);
+abstract class AuthDatabaseRequest extends MySQLDatabaseRequest {
 
 }

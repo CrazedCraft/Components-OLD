@@ -12,23 +12,22 @@
  *
  * @author JackNoordhuis
  *
- * Created on 14/07/2016 at 4:12 PM
+ * Created on 29/09/2017 at 9:11 PM
  *
  */
 
-namespace core\database\ban;
+namespace core\database\request;
+
+use pocketmine\Server;
 
 /**
- * All classes that implement a ban database MUST implement this class
+ * Base class for all database requests
  */
-interface BanDatabase {
+abstract class DatabaseRequest {
 
-	public function check($name, $ip, $cid, $doCallback);
+	abstract public function execute();
 
-	public function add($name, $ip, $cid, $expiry, $reason, $issuer);
+	public function complete(Server $server) {
 
-	public function update($name, $ip, $cid);
-
-	public function remove($name, $ip, $cid);
-
+	}
 }

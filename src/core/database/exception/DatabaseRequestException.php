@@ -12,27 +12,12 @@
  *
  * @author JackNoordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Created on 29/09/2017 at 9:31 PM
  *
  */
 
-namespace core\database\auth;
+namespace core\database\exception;
 
-/**
- * All classes that implement an auth database MUST implement this class
- */
-interface AuthDatabase {
-
-	public function register($name, $password, $email);
-
-	public function login($name);
-
-	public function update($name, array $args);
-
-	public function unregister($name);
-
-	public function changePassword($name, $hash);
-
-	public function close();
+class DatabaseRequestException extends DatabaseException {
 
 }

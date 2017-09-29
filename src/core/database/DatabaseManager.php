@@ -25,6 +25,9 @@ abstract class DatabaseManager {
 	/** @var Main */
 	private $plugin;
 
+	/** @var bool */
+	private $closed = false;
+
 	public function __construct(Main $plugin) {
 		$this->plugin = $plugin;
 		$this->init();
@@ -41,5 +44,21 @@ abstract class DatabaseManager {
 	 * Called when the class is constructed
 	 */
 	protected abstract function init();
+
+	/**
+	 * @return bool  Returns true if the manager was closed successfully
+	 */
+	public function close() : bool {
+		if(!$this->closed) {
+			$this->closed = true;
+			unset($this->plugin);
+			return true;
+		}
+		return false;
+	}
+
+	public function isClosed() : bool {
+		return $this->closed;
+	}
 
 }
