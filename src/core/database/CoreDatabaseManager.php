@@ -1,46 +1,27 @@
 <?php
 
 /**
- * CoreDatabaseManager.php – Components
+ * CrazedCraft Network Components
  *
- * Copyright (C) 2015-2017 Jack Noordhuis
+ * Copyright (C) 2016 CrazedCraft Network
  *
- * This is private software, you cannot redistribute and/or modify it in any way
- * unless given explicit permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute it and/or modify any way
+ * unless otherwise given permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author Jack Noordhuis
+ * @author JackNoordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
+ * Created on 14/07/2016 at 12:44 AM
  *
  */
 
 namespace core\database;
 
-use core\database\auth\AuthDatabase;
-use core\database\auth\mysql\MySQLAuthDatabase;
-use core\database\ban\BanDatabase;
-use core\database\ban\mysql\MySQLBanDatabase;
-use core\database\mysql\MySQLCredentials;
-use core\database\network\mysql\MySQLNetworkDatabase;
-use core\database\network\NetworkDatabase;
-use core\database\rank\mysql\MySQLRankDatabase;
-use core\database\rank\RankDatabase;
-
 class CoreDatabaseManager extends DatabaseManager {
 
-	/** @var AuthDatabase */
-	private $authDatabase;
-
-	/** @var BanDatabase */
-	private $banDatabase;
-
-	/** @var RankDatabase */
-	private $rankDatabase;
-
-	/** @var NetworkDatabase */
-	private $networkDatabase;
+	/** @var MySQLCredentials[] */
+	private $credentialsPool = [];
 
 	/** @var bool */
 	private $closed = false;
@@ -49,66 +30,51 @@ class CoreDatabaseManager extends DatabaseManager {
 	 * Load up all the databases
 	 */
 	protected function init() {
-		$this->setAuthDatabase();
-		$this->setBanDatabase();
-//		$this->setRankDatabase();
-		$this->setNetworkDatabase();
+
 	}
 
 	/**
-	 * Set the auth database
+	 * Add a database credentials instance into the pool
+	 *
+	 * @param MySQLCredentials $credentials
+	 * @param string $key
 	 */
-	public function setAuthDatabase() {
-		$this->authDatabase = new MySQLAuthDatabase($this->getCore(), MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")));
+	public function addCredentials(MySQLCredentials $credentials, string $key) {
+		$this->credentialsPool[$key] = $credentials;
 	}
 
 	/**
-	 * Set the bans database
+	 * Get a database credentials instance from the pool
+	 *
+	 * @param string $key
+	 *
+	 * @return MySQLCredentials|null
 	 */
-	public function setBanDatabase() {
-		$this->banDatabase = new MySQLBanDatabase($this->getCore(), MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")));
+	public function getCredentials(string $key) {
+		return $this->credentialsPool[$key] ?? null;
 	}
 
 	/**
-	 * Set the ranks database
+	 * Check if there is a credentials instance in the pool
+	 *
+	 * @param string $key
+	 *
+	 * @return bool
 	 */
-	public function setRankDatabase() {
-		$this->banDatabase = new MySQLRankDatabase($this->getCore(), MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")));
+	public function hasCredentials(string $key) : bool {
+		return isset($this->credentialsPool[$key]);
 	}
 
-	/**
-	 * Set the network database
-	 */
-	public function setNetworkDatabase() {
-		$this->networkDatabase = new MySQLNetworkDatabase($this->getCore(), MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")));
+	public function close() : bool {
+		if(parent::close()) {
+			unset($this->credentialsPool);
+			return true;
+		}
+		return false;
 	}
 
-	/**
-	 * @return AuthDatabase
-	 */
-	public function getAuthDatabase() {
-		return $this->authDatabase;
-	}
-
-	/**
-	 * @return BanDatabase
-	 */
-	public function getBanDatabase() {
-		return $this->banDatabase;
-	}
-
-	/**
-	 * @return RankDatabase
-	 */
-	public function getRankDatabase() {
-		return $this->rankDatabase;
-	}
-
-	/**
-	 * @return NetworkDatabase|MySQLNetworkDatabase
-	 */
-	public function getNetworkDatabase() {
-		return $this->networkDatabase;
+	public function isClosed() : bool {
+		return $this->closed;
 	}
 
 }
