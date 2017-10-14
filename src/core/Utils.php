@@ -18,7 +18,11 @@
 
 namespace core;
 
+use core\exception\InvalidConfigException;
 use core\language\LanguageUtils;
+use pocketmine\entity\Effect;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
@@ -50,9 +54,79 @@ class Utils {
 	 */
 	public static function parsePosition(string $string) {
 		$data = explode(",", str_replace(" ", "", $string));
-		$level = Server::getInstance()->getLevelByName($data[3] ?? "");
-		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), $level ?? Server::getInstance()->getDefaultLevel());
+		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), self::parseLevel($data[3]));
 	}
+
+	/**
+	 * Get a level instance from a string
+	 *
+	 * @param string $name
+	 *
+	 * @return Level
+	 */
+	public static function parseLevel(string $name) : Level {
+		return ($server = Server::getInstance())->getLevelByName($name ?? "") ?? $server->getDefaultLevel();
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return Item
+	 */
+	public static function parseItem(array $data) : Item {
+		$item = Item::get((int) $data["id"], (int) ($data["meta"] ?? 0), (int) ($data["count"] ?? 1));
+		$item->setCustomName(LanguageUtils::translateColors($data["name"] ?? ""));
+
+		foreach($data["enchantments"] as $enchant) {
+			$item->addEnchantment(Utils::parseEnchantment($enchant));
+		}
+
+		return $item;
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return Enchantment
+	 *
+	 * @throws InvalidConfigException
+	 */
+	public static function parseEnchantment(array $data) : Enchantment {
+		$ench = Enchantment::getEnchantmentByName($data["name"]);
+		if(!$ench instanceof Enchantment) throw new InvalidConfigException("Unknown enchantment name supplied for kit item! Value: " . $data["name"] ?? "NULL");
+		$ench->setLevel($data["level"] ?? 1);
+		return $ench;
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return Effect
+	 *
+	 * @throws InvalidConfigException
+	 */
+	public static function parseEffect(array $data) : Effect {
+		$effect = Effect::getEffectByName($data["name"]);
+		if(!$effect instanceof Effect) throw new InvalidConfigException("Unknown effect name supplied for kit effect! Value: " . $data["name"] ?? "NULL");
+		$effect->setDuration((int) ($data["time"] ?? 100));
+		$effect->setAmplifier((int) ($data["amplifier"] ?? 0));
+		return $effect;
+	}
+
+	/**
+	 * @param array $times
+	 *
+	 * @return int
+	 */
+	public static function parseCooldown(array $times) : int {
+		$seconds = (int) ($times["seconds"] ?? 0);
+		$seconds += (int) ($times["minutes"] ?? 0) * 60; // sixty seconds to a minute
+		$seconds += (int) ($times["hours"] ?? 0) * 3600; // 3,600 seconds to an hour
+		$seconds += (int) ($times["days"] ?? 0) * 86400; // 86,400 seconds to a day
+		$seconds += (int) ($times["weeks"] ?? 0) * 604800; // 604,800 seconds to a week
+		return $seconds;
+	}
+
 
 	/**
 	 * Apply minecraft color codes to a string from our custom ones
