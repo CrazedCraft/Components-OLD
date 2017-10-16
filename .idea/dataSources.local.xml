@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="MySQL - 875@192.99.245.17" uuid="0a9bd950-0d79-4d9d-a8a1-703970ddeae4">
+      <database-info product="MySQL" version="5.1.73" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.35 ( Revision: 5fb9c5849535c13917c2cf9baaece6ef9693ef27 )">
+        <extra-name-characters>#@</extra-name-characters>
+        <identifier-quote-string>`</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>875</user-name>
+      <introspection-schemas>*:875</introspection-schemas>
+    </data-source>
+    <data-source name="crazedcraft@localhost" uuid="3d5ab791-eaef-4ada-9f0d-062b253f9ff4">
+      <database-info product="MySQL" version="5.5.42" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.35 ( Revision: 5fb9c5849535c13917c2cf9baaece6ef9693ef27 )">
+        <extra-name-characters>#@</extra-name-characters>
+        <identifier-quote-string>`</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="mixed" quoted-identifiers="upper" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>root</user-name>
+      <introspection-schemas>*:crazedcraft</introspection-schemas>
+      <resolve-scope>crazedcraft:</resolve-scope>
+      <unqualified-resolve-schemas>crazedcraft:</unqualified-resolve-schemas>
+    </data-source>
+  </component>
+</project>
