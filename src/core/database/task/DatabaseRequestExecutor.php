@@ -18,9 +18,13 @@
 
 namespace core\database\task;
 
+use core\database\exception\DatabaseException;
 use core\database\exception\DatabaseRequestException;
 use core\database\MySQLCredentials;
 use core\database\request\MySQLDatabaseRequest;
+use core\database\result\MysqlDatabaseErrorResult;
+use core\database\result\MysqlDatabaseResult;
+use core\Main;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
@@ -40,22 +44,31 @@ class DatabaseRequestExecutor extends AsyncTask {
 	public function onRun() {
 		/** @var MySQLDatabaseRequest[] $requests */
 		$requests = unserialize($this->requests);
-		try {
-			foreach($requests as $request) {
-				$request->execute();
-			}
-		} catch(DatabaseRequestException $e) {
 
-		} finally {
-			$this->setResult($requests);
+		$results = [];
+
+		foreach($requests as $request) {
+			try {
+				$results[] = [$request, $request->execute($this)];
+			} catch(DatabaseException $e) {
+				$results[] = [$request, new MysqlDatabaseErrorResult($e)];
+			}
 		}
+
+		$this->setResult($results);
 	}
 
 	public function onCompletion(Server $server) {
-		/** @var MySQLDatabaseRequest[] $requests */
-		$requests = $this->getResult();
-		foreach($requests as $request) {
-			$request->complete($server);
+		$plugin = $server->getPluginManager()->getPlugin("Components");
+		if($plugin instanceof Main and $plugin->isEnabled()) {
+			/** @var MySQLDatabaseRequest[] $requests */
+			$requests = $this->getResult();
+
+			/** @var MySQLDatabaseRequest $request */
+			/** @var MysqlDatabaseResult $result */
+			foreach($requests as list($request, $result)) {
+				$request->complete($plugin, $result);
+			}
 		}
 	}
 
@@ -64,7 +77,7 @@ class DatabaseRequestExecutor extends AsyncTask {
 	 *
 	 * @return \mysqli
 	 */
-	protected function getMysqli() : \mysqli{
+	public function getMysqli() : \mysqli{
 		/** @var MysqlCredentials $credentials */
 		$credentials = $this->getCredentials();
 		$identifier = DatabaseRequestExecutor::getIdentifier($credentials);

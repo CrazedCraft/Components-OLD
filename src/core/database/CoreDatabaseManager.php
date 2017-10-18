@@ -18,10 +18,23 @@
 
 namespace core\database;
 
+use core\database\request\MySQLDatabaseRequest;
+use core\database\task\DatabaseRequestExecutor;
+use core\database\task\DatabaseRequestScheduler;
+
 class CoreDatabaseManager extends DatabaseManager {
+
+	/** @var int */
+	private $requestBatchThrottle = 4;
 
 	/** @var MySQLCredentials[] */
 	private $credentialsPool = [];
+
+	/** @var MySQLDatabaseRequest[] */
+	private $requestPool = [];
+
+	/** @var DatabaseRequestScheduler */
+	private $requestScheduler;
 
 	/** @var bool */
 	private $closed = false;
@@ -30,7 +43,9 @@ class CoreDatabaseManager extends DatabaseManager {
 	 * Load up all the databases
 	 */
 	protected function init() {
-
+		$this->requestBatchThrottle = $this->getPlugin()->getSettings()->getNested("settings.request-batch-throttle");
+		$this->addCredentials(MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")), "main");
+		$this->requestScheduler = new DatabaseRequestScheduler($this);
 	}
 
 	/**
@@ -63,6 +78,38 @@ class CoreDatabaseManager extends DatabaseManager {
 	 */
 	public function hasCredentials(string $key) : bool {
 		return isset($this->credentialsPool[$key]);
+	}
+
+	/**
+	 * Add a request to the pull
+	 *
+	 * @param MySQLDatabaseRequest $request
+	 */
+	public function pushToPool(MySQLDatabaseRequest $request) {
+		$this->requestPool[] = $request;
+	}
+
+	/**
+	 * Pull a request from the pull
+	 *
+	 * @return MySQLDatabaseRequest
+	 */
+	public function pullFromPull() : MySQLDatabaseRequest {
+		return array_shift($this->requestPool);
+	}
+
+	/**
+	 * Process a chunk of requests from the pool
+	 */
+	public function processPool() {
+		$requests = [];
+		$count = 0;
+		while($count < $this->requestBatchThrottle and !empty($this->requestPool)) {
+			$requests[] = $this->pullFromPull();
+			$count++;
+		}
+
+		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new DatabaseRequestExecutor($this->getCredentials("main"), $requests));
 	}
 
 	public function close() : bool {
