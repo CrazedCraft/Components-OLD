@@ -18,6 +18,7 @@
 
 namespace core\database\request;
 
+use core\database\task\DatabaseRequestExecutor;
 use pocketmine\Server;
 
 /**
@@ -25,9 +26,10 @@ use pocketmine\Server;
  */
 abstract class DatabaseRequest {
 
-	abstract public function execute();
-
-	public function complete(Server $server) {
-
-	}
+	/**
+	 * Actions to execute on when the request is run on the worker
+	 *
+	 * @param DatabaseRequestExecutor $executor
+	 */
+	abstract public function execute(DatabaseRequestExecutor $executor);
 }

@@ -20,4 +20,16 @@ namespace core\database\result;
 
 abstract class MysqlDatabaseResult {
 
+	/** @var float */
+	private $timing;
+
+	public function setTiming(float $timing) : MysqlDatabaseResult {
+		$this->timing = $timing;
+		return $this;
+	}
+
+	public function getTiming() : float {
+		return $this->timing;
+	}
+
 }

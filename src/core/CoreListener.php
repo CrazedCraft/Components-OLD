@@ -18,6 +18,7 @@
 
 namespace core;
 
+use core\database\request\auth\AuthLoginDatabaseRequest;
 use core\entity\text\FloatingText;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
@@ -167,8 +168,8 @@ class CoreListener implements Listener {
 			$event->setCancelled(true);
 			return;
 		}
-		$this->plugin->getDatabaseManager()->getAuthDatabase()->login($player->getName());
-		$this->plugin->getDatabaseManager()->getBanDatabase()->check($player->getName(), $player->getAddress(), $player->getClientId(), true);
+		$this->plugin->getDatabaseManager()->pushToPool(new AuthLoginDatabaseRequest($player->getName()));
+		//$this->plugin->getDatabaseManager()->getBanDatabase()->check($player->getName(), $player->getAddress(), $player->getClientId(), true);
 		$player->setChatMuted(true);
 	}
 

@@ -43,7 +43,7 @@ class NetworkManager {
 		$server = $plugin->getServer();
 		$this->map = new NetworkMap();
 		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
-		$plugin->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($plugin->getDatabaseManager()->getNetworkDatabase(), $this->map));
+		//$plugin->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($plugin->getDatabaseManager()->getNetworkDatabase(), $this->map));
 	}
 
 	/**
