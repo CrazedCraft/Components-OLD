@@ -35,7 +35,7 @@ abstract class CoreUnauthenticatedUserCommand extends CoreCommand {
 		if($sender instanceof CorePlayer) {
 			return $this->onRun($sender, $args);
 		} else {
-			$sender->sendMessage(LanguageManager::getInstance()->translate("MUST_BE_PLAYER_FOR_COMMAND"));
+			$sender->sendMessage($this->getCore()->getLanguageManager()->translate("MUST_BE_PLAYER_FOR_COMMAND"));
 		}
 		return true;
 	}

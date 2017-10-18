@@ -28,7 +28,7 @@ class MySQLRankDatabase extends MySQLDatabase implements RankDatabase {
 	 * Schedule an AsyncTask to check the database's status
 	 */
 	public function init() {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new CheckDatabaseRequest($this));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new CheckDatabaseRequest($this));
 	}
 
 	public function load($player) {

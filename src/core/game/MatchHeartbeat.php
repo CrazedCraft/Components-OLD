@@ -27,7 +27,7 @@ class MatchHeartbeat extends PluginTask {
 
 	public function __construct(MatchManager $manager) {
 		$this->manager = $manager;
-		parent::__construct($manager->getPlugin());
+		parent::__construct($manager->getCore());
 	}
 
 	/**

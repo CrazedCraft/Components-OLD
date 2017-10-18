@@ -27,17 +27,17 @@ use core\command\commands\LoginCommand;
 use core\command\commands\RegisterCommand;
 use core\command\commands\TestCommand;
 use core\Main;
+use core\util\traits\CorePluginReference;
 
 /**
  * Manages all commands
  */
 class CoreCommandMap {
 
+	use CorePluginReference;
+
 	/** @var CoreCommand[] */
 	protected $commands = [];
-
-	/** @var $plugin */
-	private $plugin;
 
 	/** @var array */
 	private $commandData = [];
@@ -60,23 +60,25 @@ class CoreCommandMap {
 	 * @param Main $plugin
 	 */
 	public function __construct(Main $plugin) {
-		$this->plugin = $plugin;
+		$this->setCore($plugin);
+
 		$this->loadCommandData();
 		$this->setDefaultCommands();
 	}
 
 	protected function loadCommandData() {
-		if(!is_dir($this->plugin->getDataFolder() . self::COMMAND_DATA_FOLDER)) mkdir($this->plugin->getDataFolder() . self::COMMAND_DATA_FOLDER);
+		$plugin = $this->getCore();
+		if(!is_dir($plugin->getDataFolder() . self::COMMAND_DATA_FOLDER)) mkdir($plugin->getDataFolder() . self::COMMAND_DATA_FOLDER);
 		foreach(self::COMMAND_DATA_FILES as $name => $filename) {
-			$this->plugin->saveResource(self::COMMAND_DATA_FOLDER . $filename);
-			$this->commandData[$name] = json_decode(file_get_contents($this->plugin->getDataFolder() . self::COMMAND_DATA_FOLDER . $filename), true);
+			$plugin->saveResource(self::COMMAND_DATA_FOLDER . $filename);
+			$this->commandData[$name] = json_decode(file_get_contents($plugin->getDataFolder() . self::COMMAND_DATA_FOLDER . $filename), true);
 		}
 
 		$this->generateDefaultCommandData();
 	}
 
 	private function generateDefaultCommandData() {
-		$defaults = $this->plugin->getSettings()->getNested("settings.command-data", ["default"]);
+		$defaults = $this->getCore()->getSettings()->getNested("settings.command-data", ["default"]);
 		$data = [];
 		foreach($defaults as $name) {
 			if(isset($this->commandData[$name])) {
@@ -106,23 +108,17 @@ class CoreCommandMap {
 	 * Set the default commands
 	 */
 	public function setDefaultCommands() {
+		$plugin = $this->getCore();
 		$this->registerAll([
-			new BanCommand($this->plugin),
-			new ChangePasswordCommand($this->plugin),
-			new DumpSkinCommand($this->plugin),
-			new InfoCommand($this->plugin),
-			new KickCommand(($this->plugin)),
-			new LoginCommand($this->plugin),
-			new RegisterCommand($this->plugin),
-			new TestCommand($this->plugin),
+			new BanCommand($plugin),
+			new ChangePasswordCommand($plugin),
+			new DumpSkinCommand($plugin),
+			new InfoCommand($plugin),
+			new KickCommand($plugin),
+			new LoginCommand($plugin),
+			new RegisterCommand($plugin),
+			new TestCommand($plugin),
 		]);
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getPlugin() {
-		return $this->plugin;
 	}
 
 	/**
@@ -146,7 +142,7 @@ class CoreCommandMap {
 	 */
 	public function register(CoreCommand $command, $fallbackPrefix = "cc") {
 		if($command instanceof CoreCommand) {
-			$this->plugin->getServer()->getCommandMap()->register($fallbackPrefix, $command);
+			$this->getCore()->getServer()->getCommandMap()->register($fallbackPrefix, $command);
 			$this->commands[strtolower($command->getName())] = $command;
 		}
 		return false;
@@ -169,7 +165,7 @@ class CoreCommandMap {
 	 * @param CoreCommand $command
 	 */
 	public function unregister(CoreCommand $command) {
-		$this->plugin->getServer()->getCommandMap()->unregister($command);
+		$this->getCore()->getServer()->getCommandMap()->unregister($command);
 		unset($this->commands[strtolower($command->getName())]);
 	}
 

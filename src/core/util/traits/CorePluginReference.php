@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DatabaseManager.php – Components
+ * CorePluginReference.php – Components
  *
  * Copyright (C) 2015-2017 Jack Noordhuis
  *
@@ -12,31 +12,30 @@
  *
  * @author Jack Noordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
+ * Last modified on 18/10/2017 at 6:31 PM
  *
  */
 
-namespace core\database;
+namespace core\util\traits;
 
 use core\Main;
-use core\util\traits\CorePluginReference;
 
-abstract class DatabaseManager {
-
-	use CorePluginReference;
+/**
+ * Simple trait for providing a reference to the cores main class
+ */
+trait CorePluginReference {
 
 	/** @var Main */
-	private $plugin;
+	private $core;
 
-	public function __construct(Main $plugin) {
-		$this->setCore($plugin);
-
-		$this->init();
+	protected function setCore(Main $plugin) {
+		$this->core = $plugin;
 	}
 
 	/**
-	 * Called when the class is constructed
+	 * @return Main
 	 */
-	protected abstract function init();
-
+	public function getCore() {
+		return $this->core;
+	}
 }

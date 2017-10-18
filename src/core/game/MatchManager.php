@@ -18,13 +18,12 @@
 
 namespace core\game;
 
-use pocketmine\event\TimingsHandler;
-use pocketmine\plugin\Plugin;
+use core\Main;
+use core\util\traits\CorePluginReference;
 
 class MatchManager {
 
-	/** @var Plugin */
-	private $plugin;
+	use CorePluginReference;
 
 	///** @var TimingsHandler */
 	//private $timings;
@@ -38,17 +37,10 @@ class MatchManager {
 	/** @var Match[] */
 	private $matches = [];
 
-	public function __construct(Plugin $plugin) {
-		$this->plugin = $plugin;
+	public function __construct(Main $plugin) {
+		$this->setCore($plugin);
 		//$this->timings = new TimingsHandler("Match Manager");
 		$this->heartbeat = new MatchHeartbeat($this);
-	}
-
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin() {
-		return $this->plugin;
 	}
 
 	///**
@@ -117,7 +109,7 @@ class MatchManager {
 			}
 		}
 		//$this->timings->stopTiming();
-		$this->plugin->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
+		$this->getCore()->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
 		$this->lastTick = $currentTick;
 	}
 

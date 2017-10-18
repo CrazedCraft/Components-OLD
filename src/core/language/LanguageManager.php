@@ -20,16 +20,16 @@ namespace core\language;
 
 use core\CorePlayer;
 use core\Main;
+use core\util\traits\CorePluginReference;
 use core\Utils;
 use pocketmine\utils\Config;
 
 class LanguageManager {
 
+	use CorePluginReference;
+
 	/** @var LanguageManager */
 	private static $instance;
-
-	/** @var Main */
-	private $plugin;
 
 	/** @var string */
 	private $path = "";
@@ -95,7 +95,8 @@ class LanguageManager {
 
 	public function __construct(Main $plugin) {
 		self::$instance = $this;
-		$this->plugin = $plugin;
+
+		$this->setCore($plugin);
 
 		$this->path = $plugin->getDataFolder() . self::BASE_LANGUAGE_DIRECTORY;
 		if(!is_dir($this->path)) @mkdir($this->path);
@@ -121,13 +122,6 @@ class LanguageManager {
 	}
 
 	/**
-	 * @return Main
-	 */
-	public function getCore() {
-		return $this->plugin;
-	}
-
-	/**
 	 * @return string
 	 */
 	public function getPath() {
@@ -138,10 +132,11 @@ class LanguageManager {
 	 * Load all languages and their messages into an array
 	 */
 	private function loadMessages() {
+		$plugin = $this->getCore();
 		$path = $this->path . self::MESSAGES_PATH;
 		if(!is_dir($path)) @mkdir($path);
 		foreach(self::$messageLangs as $lang => $filename) {
-			$this->plugin->saveResource(self::BASE_LANGUAGE_DIRECTORY . self::MESSAGES_PATH . $filename);
+			$plugin->saveResource(self::BASE_LANGUAGE_DIRECTORY . self::MESSAGES_PATH . $filename);
 			$file = $path . $filename;
 			$this->registerLanguage($lang, (new Config($file, Config::JSON))->getAll());
 		}
@@ -199,15 +194,16 @@ class LanguageManager {
 	 * @return mixed|null
 	 */
 	public function translate($key, $lang = "en", $args = [], $center = true) {
+		$plugin = $this->getCore();
 		if(!$this->isLanguage($lang)) { // Check if language exists, if not default to english
-			$this->plugin->getLogger()->debug("Couldn't find language '{$lang}'");
+			$plugin->getLogger()->debug("Couldn't find language '{$lang}'");
 			$lang = "en";
 		}
 		if(isset($this->messages[$lang][$key])) { // Check if translation exists, if not log to debug channel
 			$translated = self::argumentsToString($this->messages[$lang][$key], $args);
 			return $center ? LanguageUtils::centerPrecise($translated, null) : $translated;
 		} else {
-			$this->plugin->getLogger()->debug("Couldn't find message key '{$key}' for language '{$lang}'");
+			$plugin->getLogger()->debug("Couldn't find message key '{$key}' for language '{$lang}'");
 			if(isset($this->messages["en"][$key])) { // Attempt to find the english translation
 				$translated = self::argumentsToString($this->messages["en"][$key], $args);
 				return $center ? LanguageUtils::centerPrecise($translated, null) : $translated;

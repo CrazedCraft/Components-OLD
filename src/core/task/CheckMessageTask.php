@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CheckMessageTask.php – Components
  *
@@ -14,6 +15,7 @@
  * Last modified on 15/10/2017 at 2:04 AM
  *
  */
+
 namespace core\task;
 
 use core\CorePlayer;

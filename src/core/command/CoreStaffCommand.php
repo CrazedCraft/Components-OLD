@@ -43,7 +43,7 @@ abstract class CoreStaffCommand extends CoreCommand {
 				$sender->sendTranslatedMessage("MUST_AUTHENTICATE_FIRST");
 			}
 		} else {
-			$sender->sendMessage($this->getPlugin()->getLanguageManager()->translate("MUST_BE_PLAYER_FOR_COMMAND"));
+			$sender->sendMessage($this->getCore()->getLanguageManager()->translate("MUST_BE_PLAYER_FOR_COMMAND"));
 		}
 		return true;
 	}

@@ -19,14 +19,14 @@
 namespace core\command;
 
 use core\Main;
+use core\util\traits\CorePluginReference;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 
-abstract class CoreCommand extends Command implements PluginIdentifiableCommand {
+abstract class CoreCommand extends Command {
 
-	/** @var Main */
-	private $plugin;
+	use CorePluginReference;
 
 	/**
 	 * DefaultCommand constructor.
@@ -38,15 +38,8 @@ abstract class CoreCommand extends Command implements PluginIdentifiableCommand 
 	 * @param array ...$aliases
 	 */
 	public function __construct(Main $plugin, $name, $description, $usage, array $aliases = []) {
+		$this->setCore($plugin);
 		parent::__construct($name, $description, $usage, $aliases);
-		$this->plugin = $plugin;
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getPlugin() {
-		return $this->plugin;
 	}
 
 	/**

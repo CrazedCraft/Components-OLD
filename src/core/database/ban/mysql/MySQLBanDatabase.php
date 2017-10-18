@@ -35,15 +35,15 @@ class MySQLBanDatabase extends MySQLDatabase implements BanDatabase {
 	}
 
 	public function check($name, $ip, $cid, $doCallback) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new CheckBanRequest($this, $name, $ip, $cid, $doCallback));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new CheckBanRequest($this, $name, $ip, $cid, $doCallback));
 	}
 
 	public function add($name, $ip, $cid, $expiry, $reason, $issuer) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new AddBanRequest($this, $name, $ip, $cid, $expiry, $reason, $issuer));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new AddBanRequest($this, $name, $ip, $cid, $expiry, $reason, $issuer));
 	}
 
 	public function update($name, $ip, $cid) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new UpdateBanRequest($this, $name, $ip, $cid));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new UpdateBanRequest($this, $name, $ip, $cid));
 	}
 
 	public function remove($name, $ip, $id) {

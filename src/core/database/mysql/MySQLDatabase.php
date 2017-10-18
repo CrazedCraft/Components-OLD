@@ -20,14 +20,14 @@ namespace core\database\mysql;
 
 use core\database\Database;
 use core\Main;
+use core\util\traits\CorePluginReference;
 
 abstract class MySQLDatabase implements Database {
 
+	use CorePluginReference;
+
 	/** @var MySQLCredentials */
 	private $credentials;
-
-	/** @var Main */
-	private $plugin;
 
 	/**
 	 * MySQLDatabase constructor
@@ -36,25 +36,23 @@ abstract class MySQLDatabase implements Database {
 	 * @param MySQLCredentials $credentials
 	 */
 	public function __construct(Main $plugin, MySQLCredentials $credentials) {
-		$this->plugin = $plugin;
+		$this->setCore($plugin);
 		$this->credentials = $credentials;
+
 		$this->init();
 	}
 
 	protected abstract function init();
 
 	/**
-	 * @return Main
-	 */
-	public function getPlugin() {
-		return $this->plugin;
-	}
-
-	/**
 	 * @return MySQLCredentials
 	 */
 	public function getCredentials() {
 		return $this->credentials;
+	}
+
+	public function close() {
+
 	}
 
 }

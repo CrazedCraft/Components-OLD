@@ -43,19 +43,19 @@ class MySQLAuthDatabase extends MySQLDatabase implements AuthDatabase {
 	}
 
 	public function register($name, $hash, $email) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new RegisterRequest($this, $name, $hash, $email));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new RegisterRequest($this, $name, $hash, $email));
 	}
 
 	public function login($name) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new LoginRequest($this, $name));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new LoginRequest($this, $name));
 	}
 
 	public function update($name, array $args) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new UpdateRequest($this, $name, $args));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new UpdateRequest($this, $name, $args));
 	}
 
 	public function changePassword($name, $hash) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new UpdatePasswordRequest($this, $name, $hash));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new UpdatePasswordRequest($this, $name, $hash));
 	}
 
 	public function unregister($name) {

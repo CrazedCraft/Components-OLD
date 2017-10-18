@@ -22,11 +22,11 @@ use core\database\network\mysql\MySQLNetworkDatabase;
 use core\database\network\mysql\task\FetchNodeListRequest;
 use core\database\network\mysql\task\SyncRequest;
 use core\Main;
+use core\util\traits\CorePluginReference;
 
 class NetworkManager {
 
-	/** @var Main */
-	private $plugin;
+	use CorePluginReference;
 
 	/** @var NetworkMap */
 	private $map;
@@ -38,19 +38,13 @@ class NetworkManager {
 	private $closed = false;
 
 	public function __construct(Main $plugin) {
-		$this->plugin = $plugin;
+		$this->setCore($plugin);
+
 		$settings = $plugin->getSettings();
 		$server = $plugin->getServer();
 		$this->map = new NetworkMap();
 		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
 		$plugin->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($plugin->getDatabaseManager()->getNetworkDatabase(), $this->map));
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getPlugin() : Main {
-		return $this->plugin;
 	}
 
 	/**
@@ -113,8 +107,8 @@ class NetworkManager {
 	public function doNetworkSync(MySQLNetworkDatabase $db) {
 		if($this->hasNodes) {
 			$server = $this->map->getServer();
-			$server->setPlayerStatus(count($this->plugin->getServer()->getOnlinePlayers()), $this->plugin->getServer()->getMaxPlayers());
-			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($db, $this->map));
+			$server->setPlayerStatus(count($this->getCore()->getServer()->getOnlinePlayers()), $this->getCore()->getServer()->getMaxPlayers());
+			$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($db, $this->map));
 		}
 	}
 
