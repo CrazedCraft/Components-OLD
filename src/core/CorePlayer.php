@@ -18,6 +18,7 @@
 
 namespace core;
 
+use core\database\request\auth\AuthUpdateDatabaseRequest;
 use core\entity\antihack\KillAuraDetector;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
@@ -467,7 +468,7 @@ class CorePlayer extends Player {
 			$p->showPlayer($this);
 		}
 		$this->spawnKillAuraDetectors();
-		$this->getCore()->getDatabaseManager()->getAuthDatabase()->update($this->getName(), $this->getAuthData());
+		$this->doGeneralUpdate();
 	}
 
 	/**
@@ -689,14 +690,14 @@ class CorePlayer extends Player {
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(-0.5, 4.5, -0));
+			$entity->setOffset(new Vector3(0, 3, 0));
 		} else {
 			$entity->kill();
 		}
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(0.5, -3.5, 0));
+			$entity->setOffset(new Vector3(0, -3, 0));
 		} else {
 			$entity->kill();
 		}
@@ -745,7 +746,7 @@ class CorePlayer extends Player {
 					if(filter_var($message, FILTER_VALIDATE_EMAIL)) {
 						$this->email = strtolower($message);
 						$this->chatMuted = false;
-						$this->core->getDatabaseManager()->getAuthDatabase()->register($this->getName(), $this->getHash(), $this->getEmail());
+						$this->getCore()->getDatabaseManager()->pushToPool(new AuthUpdateDatabaseRequest($this->getName(), $this->getHash(), $this->getEmail(), $this->getLanguageAbbreviation(), $this->getAddress(), 0, $now = time(), $now));
 						break;
 					}
 					$this->sendTranslatedMessage("INVALID_EMAIL", [], true, false);
@@ -784,6 +785,13 @@ class CorePlayer extends Player {
 			"timePlayed" => time() - $this->loginTime,
 			"lastLogin" => $this->loginTime
 		];
+	}
+
+	/**
+	 * Execute a general database update request for this player
+	 */
+	public function doGeneralUpdate() {
+		$this->getCore()->getDatabaseManager()->pushToPool(new AuthUpdateDatabaseRequest($this->getName(), null, null, $this->getLanguageAbbreviation(), $this->getAddress(), $this->getTimePlayed() + (($now = time()) - $this->getLoginTime()), $now));
 	}
 
 	/**

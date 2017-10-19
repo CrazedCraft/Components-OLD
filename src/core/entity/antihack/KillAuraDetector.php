@@ -20,6 +20,7 @@ namespace core\entity\antihack;
 
 use core\CorePlayer;
 use core\entity\npc\HumanNPC;
+use core\Utils;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\level\Level;
@@ -30,11 +31,14 @@ use pocketmine\Player;
 
 class KillAuraDetector extends HumanNPC {
 
-	/** @var CorePlayer */
-	private $target;
+	/** @var string */
+	private $targetUuid;
 
 	/** @var Vector3 */
 	protected $offsetVector;
+
+	/** @var int */
+	protected $visibleTicks = 0;
 
 	public function initEntity() {
 		parent::initEntity();
@@ -54,7 +58,7 @@ class KillAuraDetector extends HumanNPC {
 	 * @param CorePlayer $player
 	 */
 	public function setTarget(CorePlayer $player) {
-		$this->target = $player;
+		$this->targetUuid = $player->getUniqueId()->toString();
 		$this->spawnTo($player);
 	}
 
@@ -62,7 +66,7 @@ class KillAuraDetector extends HumanNPC {
 	 * @return CorePlayer
 	 */
 	public function getTarget() {
-		return $this->target;
+		return Utils::getPlayerByUUID($this->targetUuid);
 	}
 
 	/**
@@ -71,7 +75,7 @@ class KillAuraDetector extends HumanNPC {
 	 * @return bool
 	 */
 	public function hasValidTarget() {
-		return $this->target instanceof CorePlayer and $this->target->isOnline() and $this->target->isAuthenticated();
+		return ($target = $this->getTarget()) instanceof CorePlayer and $target->isOnline() and $target->isAuthenticated();
 	}
 
 	/**
@@ -85,8 +89,8 @@ class KillAuraDetector extends HumanNPC {
 			$source->setCancelled();
 			if($source instanceof EntityDamageByEntityEvent) {
 				$attacker = $source->getDamager();
-				if($attacker instanceof CorePlayer and $attacker->getId() == $this->target->getId()) {
-					$this->target->addKillAuraTrigger();
+				if($attacker instanceof CorePlayer and $attacker->getId() === ($target = $this->getTarget())->getId()) {
+					$target->addKillAuraTrigger();
 				}
 			}
 		} else {
@@ -102,7 +106,7 @@ class KillAuraDetector extends HumanNPC {
 	 * @return bool
 	 */
 	public function spawnTo(Player $player) {
-		if($player->getId() == $this->target->getId()) {
+		if(($target = $this->getTarget()) instanceof CorePlayer and $player->getId() === $target->getId()) {
 			if($player !== $this and !isset($this->hasSpawned[$player->getId()]) and isset($player->usedChunks[Level::chunkHash($this->chunk->getX(), $this->chunk->getZ())])) {
 				$this->hasSpawned[$player->getId()] = $player;
 
@@ -140,7 +144,14 @@ class KillAuraDetector extends HumanNPC {
 	public function onUpdate($currentTick) {
 		parent::onUpdate($currentTick);
 		$wasVisible = $this->isVisible();
-		if(($this->ticksLived % 100) == 0) $this->setVisible(false);
+		if($this->visibleTicks > 0) {
+			$this->visibleTicks--;
+		} else {
+			if($this->isVisible()) {
+				$this->setVisible(false);
+			}
+		}
+
 		if($this->hasValidTarget()) {
 			$oldPos = $this->getPosition();
 			$newPos = $this->getNewPosition();
@@ -151,13 +162,24 @@ class KillAuraDetector extends HumanNPC {
 				$this->updateMovement();
 			}
 			if(!$wasVisible and ($this->ticksLived % 80) == 0) {
-				$triggers = $this->target->getKillAuraTriggers();
-				if(mt_rand(1, ($triggers <= 3 ? 3 : ($triggers >= 6 ? 1 : 2)) == 1)) { // triggers <= 3: 1 in 3 chance, triggers >= 6: 1 in 1 chance, > 3 and < 6: 1 in 2 chance
+				$triggers = ($target = $this->getTarget())->getKillAuraTriggers();
+				if($triggers <= 3) { // triggers <= 3: 1 in 3 chance
+					$chance = mt_rand(1, 3);
+					$this->visibleTicks = (20 * $triggers) + 20;
+				} elseif($triggers >= 7) { // triggers >= 7: 1 in 1 chance
+					$chance = 1;
+					$this->visibleTicks = (20 * $triggers) + 80;
+				} else { // triggers > 3 and triggers < 7: 1 in 2 chance
+					$chance = mt_rand(1, 2);
+					$this->visibleTicks = (20 * $triggers) + 40;
+				}
+
+				if($chance == 1) {
 					$this->setVisible(true);
 				}
 			}
 		} else {
-			$this->kill();
+			$this->close();
 		}
 		return true;
 	}
@@ -168,8 +190,7 @@ class KillAuraDetector extends HumanNPC {
 	 * @return Vector3
 	 */
 	public function getNewPosition() {
-		//$pos = $this->getBehindTarget(2);
-		$pos = $this->target->getPosition();
+		$pos = $this->getTarget()->getPosition();
 		return $pos->add($this->offsetVector->x, $this->offsetVector->y, $this->offsetVector->z);
 	}
 
@@ -181,8 +202,8 @@ class KillAuraDetector extends HumanNPC {
 	 * @return Vector3
 	 */
 	public function getBehindTarget($blocks) {
-		$pos = $this->target->getPosition();
-		$rad = M_PI * $this->target->yaw / 180;
+		$pos = ($target = $this->getTarget())->getPosition();
+		$rad = M_PI * $target->yaw / 180;
 		return $pos->add($blocks * sin($rad), 0, -$blocks * sin($rad));
 	}
 

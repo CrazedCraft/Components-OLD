@@ -19,6 +19,7 @@
 namespace core\database\request\auth;
 
 use core\CorePlayer;
+use core\database\request\MySQLDatabaseRequest;
 use core\database\result\MysqlDatabaseErrorResult;
 use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSelectResult;
@@ -29,7 +30,7 @@ use core\Main;
 /**
  * Class for handling the fetching of users auth information
  */
-class AuthLoginDatabaseRequest extends AuthDatabaseRequest {
+class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 
 	/**
 	 * Name of the user the request is being executed for
@@ -69,32 +70,34 @@ class AuthLoginDatabaseRequest extends AuthDatabaseRequest {
 		$player = $server->getPlayerExact($this->username);
 		if($player instanceof CorePlayer) {
 			if($result instanceof MysqlDatabaseSelectResult) { // map the database data to the player and let them know they can login
-				$result->fixTypes([
-					"hash" => MysqlDatabaseSelectResult::TYPE_STRING,
-					"email" => MysqlDatabaseSelectResult::TYPE_STRING,
-					"lastip" => MysqlDatabaseSelectResult::TYPE_STRING,
-					"lang" => MysqlDatabaseSelectResult::TYPE_STRING,
-					"timeplayed" => MysqlDatabaseSelectResult::TYPE_INT,
-					"lastlogin" => MysqlDatabaseSelectResult::TYPE_INT,
-					"registerdate" => MysqlDatabaseSelectResult::TYPE_INT,
-					"id" => MysqlDatabaseSelectResult::TYPE_INT,
-				]); // ensure the result has the correct types
-
-				$row = $result->rows[0];
-				$player->setRegistered(true);
-				$player->setLastIp($row["lastip"]);
-				$player->setHash($row["hash"]);
-				$player->setEmail($row["email"]);
-				$player->setRegisteredTime($row["registerdate"]);
-				$player->setLanguageAbbreviation($row["lang"]);
-				$player->setTimePlayed($row["timeplayed"]);
 				$player->sendTranslatedMessage("WELCOME", [], true, false);
-
-				if($player->getAddress() === $player->getLastIp()) {
-					$player->setAuthenticated(true);
-					$player->sendTranslatedMessage("IP_REMEMBERED_LOGIN", [], true);
-				} else {
-					$player->sendTranslatedMessage("LOGIN_PROMPT", [], true);
+				if(count($result->rows) === 0) { // user isn't registered
+					$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
+				} else { // user is registered
+					$result->fixTypes([
+						"hash" => MysqlDatabaseSelectResult::TYPE_STRING,
+						"email" => MysqlDatabaseSelectResult::TYPE_STRING,
+						"lastip" => MysqlDatabaseSelectResult::TYPE_STRING,
+						"lang" => MysqlDatabaseSelectResult::TYPE_STRING,
+						"timeplayed" => MysqlDatabaseSelectResult::TYPE_INT,
+						"lastlogin" => MysqlDatabaseSelectResult::TYPE_INT,
+						"registerdate" => MysqlDatabaseSelectResult::TYPE_INT,
+						"id" => MysqlDatabaseSelectResult::TYPE_INT,
+					]); // ensure the result has the correct types
+					$row = $result->rows[0];
+					$player->setRegistered(true);
+					$player->setLastIp($row["lastip"]);
+					$player->setHash($row["hash"]);
+					$player->setEmail($row["email"]);
+					$player->setRegisteredTime($row["registerdate"]);
+					$player->setLanguageAbbreviation($row["lang"]);
+					$player->setTimePlayed($row["timeplayed"]);
+					if($player->getAddress() === $player->getLastIp()) {
+						$player->setAuthenticated(true);
+						$player->sendTranslatedMessage("IP_REMEMBERED_LOGIN", [], true);
+					} else {
+						$player->sendTranslatedMessage("LOGIN_PROMPT", [], true);
+					}
 				}
 
 				$plugin->getLogger()->debug("Successfully completed login request for user {$this->username}");
