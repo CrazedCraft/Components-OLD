@@ -19,6 +19,7 @@
 namespace core;
 
 use core\database\request\auth\AuthLoginDatabaseRequest;
+use core\database\request\ban\BanCheckDatabaseRequest;
 use core\entity\text\FloatingText;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
@@ -36,6 +37,7 @@ use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -168,8 +170,14 @@ class CoreListener implements Listener {
 			return;
 		}
 		$this->plugin->getDatabaseManager()->pushToPool(new AuthLoginDatabaseRequest($player->getName()));
-		//$this->plugin->getDatabaseManager()->getBanDatabase()->check($player->getName(), $player->getAddress(), $player->getClientId(), true);
+		$this->plugin->getDatabaseManager()->pushToPool(new BanCheckDatabaseRequest(strtolower($player->getName()), $player->getAddress(), $player->getClientId(), $player->getXUID()));
 		$player->setChatMuted(true);
+	}
+
+	public function onLogin(PlayerLoginEvent $event) {
+		/** @var CorePlayer $player */
+		$player = $event->getPlayer();
+		$player->onLogin($event);
 	}
 
 	public function onJoin(PlayerJoinEvent $event) {

@@ -18,6 +18,8 @@
 
 namespace core;
 
+use core\ban\BanEntry;
+use core\ban\BanList;
 use core\database\request\auth\AuthUpdateDatabaseRequest;
 use core\entity\antihack\KillAuraDetector;
 use core\gui\container\ContainerGUI;
@@ -34,6 +36,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\Compound;
@@ -59,17 +62,8 @@ class CorePlayer extends Player {
 	/** @var string */
 	private $lastIp = "0.0.0.0";
 
-	/** @var bool */
-	private $networkBanned = false;
-
-	/** @var bool */
-	private $hasPreviousNetworkBan = false;
-
-	/** @var array */
-	private $networkBanData = [];
-
-	/** @var array */
-	private $previousNetworkBanData = [];
+	/** @var BanList */
+	private $banList;
 
 	/** @var bool */
 	private $locked = false;
@@ -180,12 +174,19 @@ class CorePlayer extends Player {
 	 */
 	public function __construct(SourceInterface $interface, $clientID, $ip, $port) {
 		parent::__construct($interface, $clientID, $ip, $port);
+
 		if(($plugin = $this->getServer()->getPluginManager()->getPlugin("Components")) instanceof Main and $plugin->isEnabled()){
 			$this->core = $plugin;
 		} else {
 			$this->kick("Error");
 			throw new PluginException("Core plugin isn't loaded!");
 		}
+	}
+
+	public function initEntity() {
+		parent::initEntity();
+
+		$this->banList = new BanList($this);
 	}
 
 	/**
@@ -203,13 +204,6 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @return bool
-	 */
-	public function isNetworkBanned() {
-		return $this->networkBanned;
-	}
-
-	/**
 	 * @return string
 	 */
 	public function getLastIp() {
@@ -217,24 +211,10 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @return bool
+	 * @return BanList
 	 */
-	public function hasPreviousNetworkBan() {
-		return $this->hasPreviousNetworkBan;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getNetworkBanData() {
-		return $this->networkBanData;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getPreviousNetworkBanData() {
-		return $this->previousNetworkBanData;
+	public function getBanList() {
+		return $this->banList;
 	}
 
 	/**
@@ -476,34 +456,6 @@ class CorePlayer extends Player {
 	 */
 	public function setLastIp(string $ip) {
 		$this->lastIp = $ip;
-	}
-
-	/**
-	 * @param bool $value
-	 */
-	public function setNetworkBanned($value = true) {
-		$this->networkBanned = $value;
-	}
-
-	/**
-	 * @param bool $value
-	 */
-	public function setHasPreviousNetworkBan($value = true) {
-		$this->hasPreviousNetworkBan = $value;
-	}
-
-	/**
-	 * @param array $data
-	 */
-	public function setNetworkBanData($data = []) {
-		$this->networkBanData = $data;
-	}
-
-	/**
-	 * @param array $data
-	 */
-	public function setPreviousNetworkBanData($data = []) {
-		$this->previousNetworkBanData = $data;
 	}
 
 	/**
@@ -758,16 +710,33 @@ class CorePlayer extends Player {
 	/**
 	 * Checks a players network ban status after querying the database and handles the results accordingly
 	 */
-	public function checkNetworkBan() {
-		if($this->networkBanned and is_array($this->networkBanData)) {
-			if(isset($this->networkBanData["ip"]) and $this->networkBanData["ip"] !== "0.0.0.0" and isset($this->networkBanData["uid"]) and $this->networkBanData["uid"] !== "") {
+	public function checkBanState() {
+		if(count(($bans = $this->getBanList()->search(strtolower($this->getName()), $this->getClientId(), $this->getAddress()))) > 0) {
+			foreach($bans as $ban) {
 				$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "BANNED_KICK", [
-					$this->networkBanData["issuer_name"],
-					$this->networkBanData["reason"],
-					$this->networkBanData["expires"] > 0 ? date("j-n-Y g:i a T", $this->networkBanData["expires"]) : "Never",
+					$ban->getIssuer(),
+					$ban->getReason(),
+					$ban->getExpiry() > 0 ? date("j-n-Y g:i a T", $ban->getExpiry()) : "Never",
 				]));
-			} else {
-				$this->getCore()->getDatabaseManager()->getBanDatabase()->update($this->getName(), $this->getAddress(), $this->getClientId());
+				break;
+			}
+
+			if(isset($ban)) {
+				// TODO: Cascade update sub-bans to the main ban so only the initial ban has to be updated
+				if(count($this->getBanList()->search(strtolower($this->getName()))) < 1) { // add new ban if user is banned but logged in with different name
+					$this->getBanList()->add(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), $ban->getExpiry(), $ban->getCreation(), true, $ban->getReason(), $ban->getIssuer()));
+					return; // new ban has already been added with this players data
+				}
+
+				if(count($this->getBanList()->search(null, $this->getClientId())) < 1) { // add new ban if user is banned but logged in with different cid
+					$this->getBanList()->add(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), $ban->getExpiry(), $ban->getCreation(), true, $ban->getReason(), $ban->getIssuer()));
+					return; // new ban has already been added with this players data
+				}
+
+				if(count($this->getBanList()->search(null, null, $this->getAddress())) < 1) { // add new ban if user is banned but logged in with different ip
+					$this->getBanList()->add(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), $ban->getExpiry(), $ban->getCreation(), true, $ban->getReason(), $ban->getIssuer()));
+					return; // not needed but for consistencies sake :p
+				}
 			}
 		}
 	}
@@ -1025,6 +994,13 @@ class CorePlayer extends Player {
 	 */
 	public function onPlace(BlockPlaceEvent $event) {
 		$event->setCancelled();
+	}
+
+	/**
+	 * @param PlayerLoginEvent $event
+	 */
+	public function onLogin(PlayerLoginEvent $event) {
+		$this->banList = new BanList($this);
 	}
 
 }
