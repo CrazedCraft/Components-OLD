@@ -36,7 +36,6 @@ use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -312,15 +311,7 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$event->setQuitMessage("");
 		if($player->isAuthenticated())
-			$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
-	}
-
-	public function onKick(PlayerKickEvent $event) {
-		/** @var CorePlayer $player */
-		$player = $event->getPlayer();
-		$event->setQuitMessage("");
-		if($player->isAuthenticated())
-			$this->plugin->getDatabaseManager()->getAuthDatabase()->update($player->getName(), $player->getAuthData());
+			$player->doGeneralUpdate();
 	}
 
 	/**

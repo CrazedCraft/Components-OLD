@@ -25,9 +25,25 @@ use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSuccessResult;
 use core\database\task\DatabaseRequestExecutor;
 use core\Main;
+use core\Utils;
+use pocketmine\utils\MainLogger;
 
+/**
+ * Base class for all mysql database requests
+ */
 abstract class MySQLDatabaseRequest {
 
+	/**
+	 * Simple function to assist with execution of database requests
+	 *
+	 * ** This method should NOT be called from the main thread! **
+	 *
+	 * @param \mysqli $mysqli
+	 * @param string $query
+	 * @param array $args
+	 *
+	 * @return MysqlDatabaseResult
+	 */
 	protected static function executeQuery(\mysqli $mysqli, string $query, array $args) : MysqlDatabaseResult {
 		$start = microtime(true);
 		try {
@@ -74,6 +90,7 @@ abstract class MySQLDatabaseRequest {
 			return $requestResult->setTiming($end - $start);
 		} catch(DatabaseException $e) {
 			$end = microtime(true);
+			Utils::flattenExceptionBacktrace($e); // stop pthreads spewing errors
 			return (new MysqlDatabaseErrorResult($e))->setTiming($end - $start);
 		} finally {
 			if(isset($stmt) and $stmt instanceof \mysqli_stmt) {
@@ -104,4 +121,5 @@ abstract class MySQLDatabaseRequest {
 	public function complete(Main $plugin, MysqlDatabaseResult $result) {
 
 	}
+
 }

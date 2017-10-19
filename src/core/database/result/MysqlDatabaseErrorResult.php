@@ -9,8 +9,8 @@ class MysqlDatabaseErrorResult extends MysqlDatabaseResult {
 	/** @var string $exception Serialized form of the {@link DatabaseException} object. */
 	private $exception;
 
-	public function __construct(DatabaseException $ex) {
-		$this->setException($ex);
+	public function __construct(DatabaseException $e) {
+		$this->setException($e);
 	}
 
 	/**

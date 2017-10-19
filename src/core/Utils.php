@@ -19,10 +19,10 @@
 namespace core;
 
 use core\language\LanguageUtils;
-use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\protocol\UpdateBlockPacket;
+use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat as TF;
 
@@ -136,7 +136,7 @@ class Utils {
 	/**
 	 * @param $uuid
 	 *
-	 * @return null|\pocketmine\Player
+	 * @return null|CorePlayer|Player
 	 */
 	public static function getPlayerByUUID($uuid) {
 		$uuid = str_replace("-", "", strtolower($uuid));
@@ -227,6 +227,38 @@ class Utils {
 	public static function hash($salt, $password) {
 		$salt = strtolower($salt); // temp fix for password in chat check :p
 		return bin2hex(hash("sha512", $password . $salt, true) ^ hash("whirlpool", $salt . $password, true));
+	}
+
+	/**
+	 * Make an exception serializable by flattening complex values in backtrace.
+	 *
+	 * @param \Exception $exception
+	 */
+	public static function flattenExceptionBacktrace(\Exception $exception) {
+		$traceProperty = (new \ReflectionClass('Exception'))->getProperty('trace');
+		$traceProperty->setAccessible(true);
+		$flatten = function(&$value, $key) {
+			if($value instanceof \Closure) {
+				$closureReflection = new \ReflectionFunction($value);
+				$value = sprintf(
+					'(Closure at %s:%s)',
+					$closureReflection->getFileName(),
+					$closureReflection->getStartLine()
+				);
+			} elseif(is_object($value)) {
+				$value = sprintf('object(%s)', get_class($value));
+			} elseif(is_resource($value)) {
+				$value = sprintf('resource(%s)', get_resource_type($value));
+			}
+		};
+		do {
+			$trace = $traceProperty->getValue($exception);
+			foreach($trace as &$call) {
+				array_walk_recursive($call['args'], $flatten);
+			}
+			$traceProperty->setValue($exception, $trace);
+		} while($exception = $exception->getPrevious());
+		$traceProperty->setAccessible(false);
 	}
 
 }
