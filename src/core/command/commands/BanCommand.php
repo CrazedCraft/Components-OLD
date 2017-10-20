@@ -37,7 +37,7 @@ class BanCommand extends CoreStaffCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[1])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
+			$target = $this->getCore()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
 				if(count($target->getBanList()->search(null, null, null, null, true, false)) > 0) {
 					$target->getBanList()->add(new BanEntry(-1, strtolower($target->getName()), $target->getAddress(), $target->getClientId(), 0, time(), true, implode(" ", $args), $player->getName()));
@@ -47,7 +47,7 @@ class BanCommand extends CoreStaffCommand {
 					$player->sendTranslatedMessage("BAN_SUCCESS", [$name, $player->getCore()->getLanguageManager()->translateForPlayer($player, "BAN_DURATION_DAYS", ["7"])]);
 				}
 			} else {
-				$this->getPlugin()->getDatabaseManager()->pushToPool(new BanUpdateRequest(-1, strtolower($name), null, null, strtotime("+7 days"), time(), implode(" ", $args), $player->getName(), true));
+				$this->getCore()->getDatabaseManager()->pushToPool(new BanUpdateRequest(-1, strtolower($name), null, null, strtotime("+7 days"), time(), implode(" ", $args), $player->getName(), true));
 				$player->sendTranslatedMessage("BAN_SUCCESS", [$name, $player->getCore()->getLanguageManager()->translateForPlayer($player, "BAN_DURATION_DAYS", ["7"])]);
 			}
 		} else {

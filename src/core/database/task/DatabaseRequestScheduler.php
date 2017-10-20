@@ -27,9 +27,9 @@ class DatabaseRequestScheduler extends PluginTask {
 
 	public function __construct(DatabaseManager $manager) {
 		$this->manager = $manager;
-		parent::__construct($manager->getPlugin());
+		parent::__construct($manager->getCore());
 
-		$manager->getPlugin()->getServer()->getScheduler()->scheduleRepeatingTask($this, 20); // process the batch pool every second
+		$manager->getCore()->getServer()->getScheduler()->scheduleRepeatingTask($this, 20); // process the batch pool every second
 	}
 
 	public function getManager() : DatabaseManager {

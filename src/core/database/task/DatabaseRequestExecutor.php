@@ -44,7 +44,6 @@ class DatabaseRequestExecutor {
 	}
 
 	public function run() {
-		$this->result = [];
 		$mysqli = $this->getMysqli();
 
 		foreach($this->requests as $request) {
@@ -59,7 +58,6 @@ class DatabaseRequestExecutor {
 	public function onCompletion(Server $server) {
 		$plugin = $server->getPluginManager()->getPlugin("Components");
 		if($plugin instanceof Main) {
-
 			/** @var MySQLDatabaseRequest $request */
 			/** @var MysqlDatabaseResult $result */
 			foreach($this->results as list($request, $result)) {

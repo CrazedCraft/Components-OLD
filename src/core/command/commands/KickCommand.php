@@ -35,10 +35,10 @@ class KickCommand extends CoreStaffCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[1])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
+			$target = $this->getCore()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
 				$victim = $target->getName();
-					$target->kick($this->getPlugin()->getLanguageManager()->translateForPlayer($target, "STAFF_KICK", [
+					$target->kick($this->getCore()->getLanguageManager()->translateForPlayer($target, "STAFF_KICK", [
 					$player->getName(),
 					implode(" ", $args),
 				]));

@@ -30,7 +30,7 @@ class ReportCommand extends CoreUserCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[0])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($args[0]);
+			$target = $this->getCore()->getServer()->getPlayer($args[0]);
 			if($target instanceof CorePlayer) {
 				if(isset($args[1])) {
 					Utils::broadcastStaffMessage("&a" . $player->getName() . " &ehas reported &c" . $target->getName() . "&e. &6Reason&7: " . $args[1]);

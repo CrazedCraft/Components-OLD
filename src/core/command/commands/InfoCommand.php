@@ -29,7 +29,7 @@ class InfoCommand extends CoreUserCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[0])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($args[0]);
+			$target = $this->getCore()->getServer()->getPlayer($args[0]);
 			if($target instanceof CorePlayer) {
 				$player->sendMessage(LanguageUtils::translateColors("&a-=====- &e{$target->getName()}('s) Info &a-=====-\n&aPing&7: &6{$target->getPing()}ms\n&aDevice&7: &c{$target->getDeviceOSString()}"));
 				$time = new \DateTime("NOW", new \DateTimeZone("GMT"));

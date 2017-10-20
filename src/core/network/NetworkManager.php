@@ -19,11 +19,11 @@ namespace core\network;
 use core\database\request\network\FetchNetworkDatabaseRequest;
 use core\database\request\network\UpdateNetworkServerDatabaseRequest;
 use core\Main;
+use core\util\traits\CorePluginReference;
 
 class NetworkManager {
 
-	/** @var Main */
-	private $plugin;
+	use CorePluginReference;
 
 	/** @var NetworkMap */
 	private $map;
@@ -38,19 +38,12 @@ class NetworkManager {
 	private $closed = false;
 
 	public function __construct(Main $plugin) {
-		$this->plugin = $plugin;
+		$this->setCore($plugin);
 		$settings = $plugin->getSettings();
 		$server = $plugin->getServer();
 		$this->map = new NetworkMap();
 		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
 		$this->syncScheduler = new NetworkUpdateScheduler($this);
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getPlugin() : Main {
-		return $this->plugin;
 	}
 
 	/**
@@ -135,10 +128,10 @@ class NetworkManager {
 
 	public function doNetworkSync() {
 		if(!$this->isMapLocked()) {
-			$this->map->getServer()->setPlayerStatus(count($this->plugin->getServer()->getOnlinePlayers()), $this->plugin->getServer()->getMaxPlayers()); // set this servers player count before a network sync
+			$this->map->getServer()->setPlayerStatus(count($this->getCore()->getServer()->getOnlinePlayers()), $this->getCore()->getServer()->getMaxPlayers()); // set this servers player count before a network sync
 			$this->lockMap();
-			$this->plugin->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($this->map->getServer()));
-			$this->plugin->getDatabaseManager()->pushToPool(new FetchNetworkDatabaseRequest($this->map));
+			$this->getCore()->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($this->map->getServer()));
+			$this->getCore()->getDatabaseManager()->pushToPool(new FetchNetworkDatabaseRequest($this->map));
 		}
 	}
 
@@ -155,7 +148,7 @@ class NetworkManager {
 	public function close() {
 		if(!$this->closed) {
 			$this->closed = true;
-			unset($this->plugin, $this->map);
+			unset($this->map);
 		}
 	}
 

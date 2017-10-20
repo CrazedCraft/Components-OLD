@@ -20,6 +20,7 @@ use core\database\request\MySQLDatabaseRequest;
 use core\database\task\AsyncDatabaseRequestExecutor;
 use core\database\task\DatabaseRequestExecutor;
 use core\database\task\DatabaseRequestScheduler;
+use core\util\traits\CorePluginReference;
 
 class CoreDatabaseManager extends DatabaseManager {
 
@@ -42,8 +43,8 @@ class CoreDatabaseManager extends DatabaseManager {
 	 * Load up all the databases
 	 */
 	protected function init() {
-		$this->requestBatchThrottle = $this->getPlugin()->getSettings()->getNested("settings.request-batch-throttle");
-		$this->addCredentials(MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")), "main");
+		$this->requestBatchThrottle = $this->getCore()->getSettings()->getNested("settings.request-batch-throttle");
+		$this->addCredentials(MySQLCredentials::fromArray($this->getCore()->getSettings()->getNested("settings.database")), "main");
 		$this->requestScheduler = new DatabaseRequestScheduler($this);
 	}
 
@@ -118,7 +119,7 @@ class CoreDatabaseManager extends DatabaseManager {
 		}
 
 		if(!empty($requests)) { // don't spam unneeded async tasks
-			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
+			$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
 		}
 	}
 
@@ -137,12 +138,12 @@ class CoreDatabaseManager extends DatabaseManager {
 			$start = microtime(true);
 			$executor->run();
 			$runFinish = microtime(true);
-			$executor->onCompletion($this->getPlugin()->getServer());
+			$executor->onCompletion($this->getCore()->getServer());
 			$finish = microtime(true);
 
-			$this->getPlugin()->getLogger()->info("Flushed request pool in " . round($total = $finish - $start, 3) . "s!");
-			$this->getPlugin()->getLogger()->debug("Run time: " . round($run = $runFinish - $start, 3) . "s");
-			$this->getPlugin()->getLogger()->debug("Complete time: " . round($run - $total, 3) . "s");
+			$this->getCore()->getLogger()->info("Flushed request pool in " . round($total = $finish - $start, 3) . "s!");
+			$this->getCore()->getLogger()->debug("Run time: " . round($run = $runFinish - $start, 3) . "s");
+			$this->getCore()->getLogger()->debug("Complete time: " . round($run - $total, 3) . "s");
 		}
 	}
 

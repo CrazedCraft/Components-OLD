@@ -93,7 +93,7 @@ class Match {
 	 */
 	public function inMatchAsPlayerByName(string $name, bool $findPlayer = false) {
 		if($findPlayer) {
-			$target = $this->manager->getPlugin()->getServer()->getPlayerExact($name);
+			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
 				return isset($this->players[$target->getName()]) and $target->getUniqueId()->toString() === $this->players[$target->getName()];
 			}
@@ -156,7 +156,7 @@ class Match {
 	 */
 	public function inMatchAsSpectatorByName(string $name, bool $findPlayer = false) {
 		if($findPlayer) {
-			$target = $this->manager->getPlugin()->getServer()->getPlayerExact($name);
+			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
 				return isset($this->spectators[$target->getName()]) and $target->getUniqueId()->toString() === $this->spectators[$target->getName()];
 			}

@@ -28,7 +28,7 @@ class TestCommand extends CoreCommand {
 	}
 
 	public function run(CommandSender $sender, array $args) {
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new ReportErrorTask("HLEFWFGE"));
+		$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new ReportErrorTask("HLEFWFGE"));
 	}
 
 }

@@ -24,6 +24,7 @@ use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
 use core\language\LanguageUtils;
 use core\task\CheckMessageTask;
+use core\util\traits\CorePluginReference;
 use pocketmine\block\Block;
 use pocketmine\block\Slab;
 use pocketmine\entity\Entity;
@@ -47,6 +48,8 @@ use pocketmine\Player;
 use pocketmine\utils\PluginException;
 
 class CorePlayer extends Player {
+
+	use CorePluginReference;
 
 	/** @var Main */
 	private $core;
@@ -173,8 +176,9 @@ class CorePlayer extends Player {
 	public function __construct(SourceInterface $interface, $clientID, $ip, $port) {
 		parent::__construct($interface, $clientID, $ip, $port);
 
-		if(($plugin = $this->getServer()->getPluginManager()->getPlugin("Components")) instanceof Main and $plugin->isEnabled()){
-			$this->core = $plugin;
+		$plugin = $this->getServer()->getPluginManager()->getPlugin("Components");
+		if($plugin instanceof Main and $plugin->isEnabled()) {
+			$this->setCore($plugin);
 		} else {
 			$this->kick("Error");
 			throw new PluginException("Core plugin isn't loaded!");
@@ -418,13 +422,6 @@ class CorePlayer extends Player {
 			default:
 				return "Unknown";
 		}
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getCore() {
-		return $this->core;
 	}
 
 	/**
@@ -913,7 +910,7 @@ class CorePlayer extends Player {
 			} else {
 				$this->getServer()->getScheduler()->scheduleAsyncTask(new CheckMessageTask($this->getName(), $this->hash, $this->lastMessage, $this->lastMessageTime, $message, $this->chatMuted));
 			}
-			if(Main::$debug) {
+			if(Main::$debug and isset($start)) {
 				$end = microtime(true);
 				echo "<----------- MESSAGE CHECK ----------->" . PHP_EOL;
 				echo "TIME: " . round($end - $start, 3) . "s " . PHP_EOL;

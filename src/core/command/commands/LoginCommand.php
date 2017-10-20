@@ -39,7 +39,7 @@ class LoginCommand extends CoreUnauthenticatedUserCommand {
 				} else {
 					$player->addLoginAttempt();
 					if($player->getLoginAttempts() >= 3) {
-						$player->kick($this->getPlugin()->getLanguageManager()->translateForPlayer($player, "TOO_MANY_LOGIN_ATTEMPTS"), false);
+						$player->kick($this->getCore()->getLanguageManager()->translateForPlayer($player, "TOO_MANY_LOGIN_ATTEMPTS"), false);
 						return;
 					}
 					$player->sendTranslatedMessage("INCORRECT_PASSWORD", [], true);

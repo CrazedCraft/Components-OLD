@@ -196,7 +196,7 @@ class CoreCommandMap {
 		foreach($this->commands as $command) {
 			$this->unregister($command);
 		}
-		unset($this->commands, $this->plugin);
+		unset($this->commands);
 	}
 
 }

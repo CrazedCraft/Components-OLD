@@ -46,7 +46,6 @@ abstract class DatabaseManager {
 	public function close() : bool {
 		if(!$this->closed) {
 			$this->closed = true;
-			unset($this->plugin);
 			return true;
 		}
 		return false;

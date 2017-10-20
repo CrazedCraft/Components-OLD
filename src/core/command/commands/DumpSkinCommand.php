@@ -28,7 +28,7 @@ class DumpSkinCommand extends CoreUserCommand {
 	}
 
 	public function onRun(CorePlayer $player, array $args) {
-		$dir = $this->getPlugin()->getDataFolder() . "skin_dumps" . DIRECTORY_SEPARATOR;
+		$dir = $this->getCore()->getDataFolder() . "skin_dumps" . DIRECTORY_SEPARATOR;
 		if(!is_dir($dir)) mkdir($dir);
 		$file = fopen($dir . strtolower(isset($args[0]) ? $args[0] : $player->getSkinName()) . ".skin", "w");
 		fwrite($file, $player->getSkinData());

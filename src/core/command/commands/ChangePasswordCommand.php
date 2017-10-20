@@ -31,7 +31,7 @@ class ChangePasswordCommand extends CoreUserCommand {
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[0])) {
 			$hash = Utils::hash($player->getName(), implode(" ", $args));
-			$this->getPlugin()->getDatabaseManager()->pushToPool(new AuthUpdateDatabaseRequest($player->getName(), $hash));
+			$this->getCore()->getDatabaseManager()->pushToPool(new AuthUpdateDatabaseRequest($player->getName(), $hash));
 		} else {
 			$player->sendTranslatedMessage("COMMAND_USAGE", [$this->getUsage()], true);
 		}
