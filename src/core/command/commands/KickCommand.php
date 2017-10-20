@@ -12,8 +12,6 @@
  *
  * @author Jack Noordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
- *
  */
 
 namespace core\command\commands;

@@ -12,8 +12,6 @@
  *
  * @author Jack Noordhuis
  *
- * Last modified on 18/10/2017 at 6:31 PM
- *
  */
 
 namespace core\util\traits;

@@ -1,18 +1,16 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * DatabaseRequestScheduler.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
- *
- * Created on 29/09/2017 at 9:26 PM
+ * @author Jack Noordhuis
  *
  */
 

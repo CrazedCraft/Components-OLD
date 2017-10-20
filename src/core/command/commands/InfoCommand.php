@@ -1,4 +1,5 @@
 <?php
+
 /**
  * InfoCommand.php – Components
  *
@@ -10,8 +11,6 @@
  * to remove this software from your device immediately.
  *
  * @author Jack Noordhuis
- *
- * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 

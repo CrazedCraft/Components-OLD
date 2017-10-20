@@ -1,4 +1,5 @@
 <?php
+
 /**
  * RegisterCommand.php – Components
  *
@@ -11,11 +12,9 @@
  *
  * @author Jack Noordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
- *
  */
-namespace core\command\commands;
 
+namespace core\command\commands;
 
 use core\command\CoreUnauthenticatedUserCommand;
 use core\CorePlayer;
