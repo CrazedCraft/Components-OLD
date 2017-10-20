@@ -23,7 +23,7 @@ use core\database\exception\DatabaseRequestException;
 use core\database\result\MysqlDatabaseErrorResult;
 use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSuccessResult;
-use core\database\task\DatabaseRequestExecutor;
+use core\database\task\AsyncDatabaseRequestExecutor;
 use core\Main;
 use core\Utils;
 use pocketmine\utils\MainLogger;
@@ -44,7 +44,7 @@ abstract class MySQLDatabaseRequest {
 	 *
 	 * @return MysqlDatabaseResult
 	 */
-	protected static function executeQuery(\mysqli $mysqli, string $query, array $args) : MysqlDatabaseResult {
+	public static function executeQuery(\mysqli $mysqli, string $query, array $args) : MysqlDatabaseResult {
 		$start = microtime(true);
 		try {
 			$stmt = $mysqli->prepare($query);
@@ -106,11 +106,11 @@ abstract class MySQLDatabaseRequest {
 	/**
 	 * Actions to execute on when the request is run on the worker
 	 *
-	 * @param DatabaseRequestExecutor $executor
+	 * @param \mysqli $executor
 	 *
 	 * @return MysqlDatabaseResult
 	 */
-	abstract public function execute(DatabaseRequestExecutor $executor) : MysqlDatabaseResult;
+	abstract public function execute(\mysqli $executor) : MysqlDatabaseResult;
 
 	/**
 	 * Actions to execute once back on the main thread

@@ -17,6 +17,9 @@
 
 namespace core\network;
 
+use core\database\request\MySQLDatabaseRequest;
+use core\database\result\MysqlDatabaseResult;
+
 /**
  * Serializable map of the network to pass across threads
  */
@@ -46,6 +49,15 @@ class NetworkMap {
 	 */
 	public function setServer(NetworkServer $server) {
 		$this->server = $server;
+	}
+
+	/**
+	 * Add a node to the list
+	 *
+	 * @param NetworkNode $node
+	 */
+	public function addNode(NetworkNode $node) {
+		$this->nodes[$node->getName()] = $node;
 	}
 
 	/**
@@ -116,13 +128,16 @@ class NetworkMap {
 	/**
 	 * Request to fetch all active servers in the network sync database
 	 *
-	 * @return \mysqli_stmt
+	 * @param \mysqli $db
+	 *
+	 * @return MysqlDatabaseResult
 	 */
-	public function doFetchRequest(\mysqli $db) : \mysqli_stmt {
-		$stmt = $db->prepare("SELECT node_id, server_motd, node, address, server_port, max_players, online_players, player_list, last_sync, online FROM network_servers WHERE NOT (node_id = ? AND node = ?)");
-		$stmt->bind_param("is", $this->server->getId(), $this->server->getNode());
-		$stmt->execute();
-		return $stmt;
+	public function doFetchRequest(\mysqli $db) : MysqlDatabaseResult {
+		return MySQLDatabaseRequest::executeQuery($db, "SELECT id, node_id, server_motd, node, address, server_port, max_players, online_players, player_list, last_sync, online FROM network_servers WHERE NOT id = ?",
+			[
+				["i", $this->server->getNetworkId()],
+			]
+		);
 	}
 
 }

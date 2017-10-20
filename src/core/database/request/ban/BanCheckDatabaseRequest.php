@@ -8,7 +8,6 @@ use core\database\request\MySQLDatabaseRequest;
 use core\database\result\MysqlDatabaseErrorResult;
 use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSelectResult;
-use core\database\task\DatabaseRequestExecutor;
 use core\language\LanguageUtils;
 use core\Main;
 
@@ -55,13 +54,13 @@ class BanCheckDatabaseRequest extends MySQLDatabaseRequest {
 	/**
 	 * Execute the ban request to fetch the users existing bans
 	 *
-	 * @param DatabaseRequestExecutor $executor
+	 * @param \mysqli $mysqli
 	 *
 	 * @return MysqlDatabaseResult
 	 */
-	public function execute(DatabaseRequestExecutor $executor) : MysqlDatabaseResult {
+	public function execute(\mysqli $mysqli) : MysqlDatabaseResult {
 		return self::executeQuery(
-			$executor->getMysqli(),
+			$mysqli,
 			"SELECT id, username, ip, uid AS cid, expires, created, reason, issuer_name AS issuer, valid FROM bans WHERE username = ? OR ip = ? OR uid = ?",
 			[
 				["s", $this->username],
