@@ -7,7 +7,6 @@ use core\database\request\MySQLDatabaseRequest;
 use core\database\result\MysqlDatabaseErrorResult;
 use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSuccessResult;
-use core\database\task\DatabaseRequestExecutor;
 use core\language\LanguageUtils;
 use core\Main;
 
@@ -112,13 +111,13 @@ class BanUpdateRequest extends MySQLDatabaseRequest {
 	/**
 	 * Execute the ban update request to update the ban data
 	 *
-	 * @param DatabaseRequestExecutor $executor
+	 * @param \mysqli $mysqli
 	 *
 	 * @return MysqlDatabaseResult
 	 */
-	public function execute(DatabaseRequestExecutor $executor) : MysqlDatabaseResult {
+	public function execute(\mysqli $mysqli) : MysqlDatabaseResult {
 		return self::executeQuery(
-			$executor->getMysqli(),
+			$mysqli,
 			"INSERT INTO bans ({$this->getInsertKeys()}) VALUES ({$this->getInsertValuePlaceholder()}) ON DUPLICATE KEY UPDATE {$this->getUpdateKeys()}" . ($this->id !== -1 ? " WHERE id = ?" : ""),
 			$this->getValues());
 	}

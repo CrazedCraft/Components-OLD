@@ -18,10 +18,18 @@
 
 namespace core\network;
 
+use core\database\request\MySQLDatabaseRequest;
+use core\database\result\MysqlDatabaseResult;
+use core\database\result\MysqlDatabaseSelectResult;
+
 /**
  * A class that represents the current status of another server on the network
  */
 class NetworkServer {
+
+	public static function fromRow(array $row) : NetworkServer {
+		return new NetworkServer($row["node_id"], $row["server_motd"], $row["node"], $row["address"], $row["server_port"], $row["max_players"], $row["online_players"], json_decode($row["player_list"]), $row["last_sync"], $row["online"], $row["id"]);
+	}
 
 	/** @var int */
 	private $networkId = -1;
@@ -47,7 +55,7 @@ class NetworkServer {
 	/** @var int */
 	private $maxPlayers = 100;
 
-	/** @var bool */
+	/** @var int */
 	private $lastOnline = 0;
 
 	/** @var bool */
@@ -65,7 +73,7 @@ class NetworkServer {
 		$this->setPlayerStatus($onlinePlayers, $maxPlayers);
 		$this->lastOnline = $lastSync;
 		$this->online = $online;
-		$this->networkId = -1;
+		$this->networkId = $networkId;
 	}
 
 	/**
@@ -144,7 +152,7 @@ class NetworkServer {
 	 * @return bool
 	 */
 	public function isAvailable()  : bool {
-		return $this->online and $this->onlinePlayers < $this->maxPlayers and time() - $this->lastOnline <= 15;
+		return $this->online and $this->onlinePlayers < $this->maxPlayers and time() - $this->lastOnline <= 60;
 	}
 
 	/**
@@ -193,36 +201,67 @@ class NetworkServer {
 	}
 
 	/**
-	 * Execute the query to insert this server into the network database
-	 *
-	 * @param \mysqli $db
-	 *
-	 * @return \mysqli_stmt
-	 */
-	public function doInsertQuery(\mysqli $db) : \mysqli_stmt {
-		$stmt = $db->stmt_init();
-		$stmt->prepare("INSERT INTO network_servers (server_motd, node, node_id, address, server_port, online_players, max_players, player_list, last_sync, online) VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-		$params = [$this->getName(), $this->getNode(), $this->getId(), $this->getHost(), $this->getPort(), $this->getOnlinePlayers(), $this->getMaxPlayers(), "[]", time(), $this->isOnline() ? 1 : 0];
-		$stmt->bind_param("ssisiiisii", ...$params);
-		$stmt->execute();
-		return $stmt;
-	}
-
-	/**
 	 * Execute the query to update this server in the network database
 	 *
 	 * @param \mysqli $db
 	 *
-	 * @return \mysqli_stmt
+	 * @return MysqlDatabaseResult
 	 */
-	public function doUpdateQuery(\mysqli $db) : \mysqli_stmt {
-		$stmt = $db->stmt_init();
-		$stmt->prepare("UPDATE network_servers SET server_motd = ?, node = ?, node_id = ?, address = ?, server_port = ?, online_players = ?, max_players = ?, player_list = ?, last_sync = ?, online = ? WHERE id = ? ");
-		$params = [$this->getName(), $this->getNode(), $this->getId(), $this->getHost(), $this->getPort(), $this->getOnlinePlayers(), $this->getMaxPlayers(), "[]", time(), ($this->isOnline() ? 1 : 0), $this->networkId];
-		$stmt->bind_param("ssisiiisiii", ...$params);
-		$stmt->execute();
-		return $stmt;
+	public function doUpdateRequest(\mysqli $db) : MysqlDatabaseResult {
+		$params = [
+			["s", $this->name],
+			["s", $this->node],
+			["i", $this->id],
+			["s", $this->host],
+			["i", $this->port],
+			["i", $this->onlinePlayers],
+			["i", $this->maxPlayers],
+			["s", "[]"],
+			["i", time()],
+			["i", $this->online ? 1 : 0],
+		];
+
+		return MySQLDatabaseRequest::executeQuery($db,
+			"INSERT INTO network_servers (id, server_motd, node, node_id, address, server_port, online_players, max_players, player_list, last_sync, online) VALUES
+					(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY
+					UPDATE server_motd = ?, node = ?, node_id = ?, address = ?, server_port = ?, online_players = ?, max_players = ?, player_list = ?, last_sync = ?, online = ?",
+			array_merge([["i", $this->networkId]], $params, $params));
+	}
+
+	/**
+	 * Attempt to update the servers network id from the database
+	 *
+	 * @param \mysqli $mysqli
+	 *
+	 * @return bool         Returns true if successful
+	 */
+	public function fetchNetworkId(\mysqli $mysqli) : bool {
+		$result = MySQLDatabaseRequest::executeQuery($mysqli, "SELECT `id` FROM `network_servers` WHERE `node` = ? AND `node_id` = ?", [
+			["s", $this->getNode()],
+			["i", $this->getId()],
+		]);
+
+		if($result instanceof MysqlDatabaseSelectResult) {
+			if(count($result->rows) > 0) {
+				$result->fixTypes(["id" => MysqlDatabaseSelectResult::TYPE_INT]);
+				$this->setNetworkId($result->rows[0]["id"]);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function updateFromRow(array $row) {
+		$this->networkId = $row["id"] ?? $this->networkId;
+		$this->name = $row["server_motd"] ?? $this->name;
+		$this->node = $row["node"] ?? $this->node;
+		$this->id = $row["node_id"] ?? $this->id;
+		$this->host = $row["address"] ?? $this->host;
+		$this->port = $row["port"] ?? $this->port;
+		$this->onlinePlayers = $row["online_players"] ?? $this->onlinePlayers;
+		$this->maxPlayers = $row["max_players"] ?? $this->maxPlayers;
+		$this->lastOnline = $row["last_sync"] ?? $this->lastOnline;
+		$this->online = $row["online"] ?? $this->online;
 	}
 
 	/**

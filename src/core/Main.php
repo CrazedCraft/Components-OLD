@@ -20,10 +20,13 @@ namespace core;
 
 use core\command\CoreCommandMap;
 use core\database\CoreDatabaseManager;
+use core\database\request\network\UpdateNetworkServerDatabaseRequest;
 use core\entity\antihack\KillAuraDetector;
 use core\entity\text\FloatingText;
 use core\language\LanguageManager;
 use core\network\NetworkManager;
+use core\network\NetworkNode;
+use core\network\NetworkServer;
 use core\task\ReportErrorTask;
 use core\task\RestartTask;
 use pocketmine\entity\Entity;
@@ -138,8 +141,48 @@ class Main extends PluginBase {
 	 * Safely shutdown the plugin
 	 */
 	public function onDisable() {
+		$map = $this->getNetworkManager()->getMap();
+		$map->getServer()->setOnline(false); // disable this server
+
+		$node = $map->findNode($map->getServer()->getNode());
+		$server = null;
+		$usedNodes = [$map->getServer()->getNode() => true]; // list of nodes used
 		/** @var CorePlayer $p */
-		foreach($this->getServer()->getOnlinePlayers() as $p) $p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART"));
+		foreach($this->getServer()->getOnlinePlayers() as $p) { // attempt to transfer players to an online server rather than kicking them
+			if($server instanceof NetworkServer and $server->isAvailable()) { // try transferring player to server where other players have been transferred
+				$p->transfer($server->getHost(), $server->getPort());
+				continue;
+			}
+
+			if($node instanceof NetworkNode) { // try transfer player to same node as other players (starting with this servers node)
+				$s = $node->getSuitableServer();
+				if($s instanceof NetworkServer) {
+					$server = $s;
+					$p->transfer($s->getHost(), $s->getPort());
+					continue;
+				}
+			}
+
+			foreach($map->getNodes() as $n) { // loop over all nodes
+				if(!isset($usedNodes[$name = $node->getName()])) { // make sure we haven't already looped over a node
+					$node = $n;
+					$usedNodes[$name] = true;
+
+					$s = $node->getSuitableServer(); // try and find a server for the player to join
+					if($s instanceof NetworkServer) {
+						$server = $s;
+						$p->transfer($s->getHost(), $s->getPort());
+						continue;
+					}
+				}
+			}
+
+			$p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART")); // no available servers
+		}
+
+		$this->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($map->getServer())); // push this servers status to the database and mark as offline
+
+		$this->getDatabaseManager()->processEntirePool(); // execute all pending requests
 	}
 
 	/**

@@ -91,7 +91,7 @@ class NetworkNode implements NodeConstants {
 		$max = 0;
 		$time = time();
 		foreach($this->servers as $server) {
-			if($server->isOnline() and $time - $server->getLastSyncTime() <= 100) {
+			if($server->isOnline() and $time - $server->getLastSyncTime() <= 60) { // if the server has been updated in the past two minutes
 				$online += $server->getOnlinePlayers();
 				$max += $server->getMaxPlayers();
 			}

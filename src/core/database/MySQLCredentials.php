@@ -18,6 +18,8 @@
 
 namespace core\database;
 
+use core\database\exception\DatabaseConnectionException;
+
 class MySQLCredentials implements \JsonSerializable {
 
 	/** @var string */
@@ -73,11 +75,13 @@ class MySQLCredentials implements \JsonSerializable {
 	 * Get a new mysqli instance
 	 *
 	 * @return \mysqli
+	 *
+	 * @throws DatabaseConnectionException
 	 */
 	public function newMysqli() {
 		$mysqli = @new \mysqli($this->host, $this->username, $this->password, $this->schema, $this->port, $this->socket);
 		if($mysqli->connect_error) {
-			// TODO: Error handling
+			throw new DatabaseConnectionException("Failed to connect to MySQL: {$mysqli->connect_error}");
 		}
 		return $mysqli;
 	}

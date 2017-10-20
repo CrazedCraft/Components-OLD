@@ -1,50 +1,58 @@
 <?php
 
 /**
- * NetworkManager.php – Components
+ * CrazedCraft Network Components
  *
- * Copyright (C) 2015-2017 Jack Noordhuis
+ * Copyright (C) 2016 CrazedCraft Network
  *
  * This is private software, you cannot redistribute and/or modify it in any way
  * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author Jack Noordhuis
+ * @author JackNoordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
+ * Created on 6/5/2017 at 3:18 PM
  *
  */
 
 namespace core\network;
 
-use core\database\network\mysql\MySQLNetworkDatabase;
-use core\database\network\mysql\task\FetchNodeListRequest;
-use core\database\network\mysql\task\SyncRequest;
+use core\database\request\network\FetchNetworkDatabaseRequest;
+use core\database\request\network\UpdateNetworkServerDatabaseRequest;
 use core\Main;
-use core\util\traits\CorePluginReference;
 
 class NetworkManager {
 
-	use CorePluginReference;
+	/** @var Main */
+	private $plugin;
 
 	/** @var NetworkMap */
 	private $map;
 
 	/** @var bool */
-	public $hasNodes = false;
+	private $mapLocked = false;
+
+	/** @var bool */
+	private $syncScheduler = false;
 
 	/** @var bool */
 	private $closed = false;
 
 	public function __construct(Main $plugin) {
-		$this->setCore($plugin);
-
+		$this->plugin = $plugin;
 		$settings = $plugin->getSettings();
 		$server = $plugin->getServer();
 		$this->map = new NetworkMap();
 		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
-		//$plugin->getServer()->getScheduler()->scheduleAsyncTask(new FetchNodeListRequest($plugin->getDatabaseManager()->getNetworkDatabase(), $this->map));
+		$this->syncScheduler = new NetworkUpdateScheduler($this);
+	}
+
+	/**
+	 * @return Main
+	 */
+	public function getPlugin() : Main {
+		return $this->plugin;
 	}
 
 	/**
@@ -62,10 +70,33 @@ class NetworkManager {
 	}
 
 	/**
+	 * Check if the network map is locked
+	 *
+	 * @return bool
+	 */
+	public function isMapLocked() : bool {
+		return $this->mapLocked;
+	}
+
+	/**
 	 * @param NetworkMap $map
 	 */
 	public function setMap(NetworkMap $map) {
 		$this->map = $map;
+	}
+
+	/**
+	 * Lock the network map to prevent it being modified
+	 */
+	public function lockMap() {
+		$this->mapLocked = true;
+	}
+
+	/**
+	 * Unlock the network map to allow modifications
+	 */
+	public function unlockMap() {
+		$this->mapLocked = false;
 	}
 
 	/**
@@ -104,11 +135,12 @@ class NetworkManager {
 		$this->map->setNodes($nodes);
 	}
 
-	public function doNetworkSync(MySQLNetworkDatabase $db) {
-		if($this->hasNodes) {
-			$server = $this->map->getServer();
-			$server->setPlayerStatus(count($this->getCore()->getServer()->getOnlinePlayers()), $this->getCore()->getServer()->getMaxPlayers());
-			$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new SyncRequest($db, $this->map));
+	public function doNetworkSync() {
+		if(!$this->isMapLocked()) {
+			$this->map->getServer()->setPlayerStatus(count($this->plugin->getServer()->getOnlinePlayers()), $this->plugin->getServer()->getMaxPlayers()); // set this servers player count before a network sync
+			$this->lockMap();
+			$this->plugin->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($this->map->getServer()));
+			$this->plugin->getDatabaseManager()->pushToPool(new FetchNetworkDatabaseRequest($this->map));
 		}
 	}
 

@@ -23,7 +23,6 @@ use core\database\request\MySQLDatabaseRequest;
 use core\database\result\MysqlDatabaseErrorResult;
 use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSuccessResult;
-use core\database\task\DatabaseRequestExecutor;
 use core\language\LanguageUtils;
 use core\Main;
 
@@ -115,13 +114,13 @@ class AuthUpdateDatabaseRequest extends MySQLDatabaseRequest {
 	/**
 	 * Execute the login request to fetch the users data
 	 *
-	 * @param DatabaseRequestExecutor $executor
+	 * @param \mysqli $mysqli
 	 *
 	 * @return MysqlDatabaseResult
 	 */
-	public function execute(DatabaseRequestExecutor $executor) : MysqlDatabaseResult {
+	public function execute(\mysqli $mysqli) : MysqlDatabaseResult {
 		return self::executeQuery(
-			$executor->getMysqli(),
+			$mysqli,
 			"INSERT INTO auth ({$this->getInsertKeys()}) VALUES ({$this->getInsertValuePlaceholder()}) ON DUPLICATE KEY UPDATE {$this->getUpdateKeys()}",
 			$this->getValues());
 	}

@@ -19,6 +19,7 @@
 namespace core\database;
 
 use core\database\request\MySQLDatabaseRequest;
+use core\database\task\AsyncDatabaseRequestExecutor;
 use core\database\task\DatabaseRequestExecutor;
 use core\database\task\DatabaseRequestScheduler;
 
@@ -94,8 +95,17 @@ class CoreDatabaseManager extends DatabaseManager {
 	 *
 	 * @return MySQLDatabaseRequest
 	 */
-	public function pullFromPull() : MySQLDatabaseRequest {
+	public function pullFromPool() : MySQLDatabaseRequest {
 		return array_shift($this->requestPool);
+	}
+
+	/**
+	 * Check if the request pull is empty
+	 *
+	 * @return bool
+	 */
+	public function poolEmpty() : bool {
+		return empty($this->requestPool);
 	}
 
 	/**
@@ -104,12 +114,38 @@ class CoreDatabaseManager extends DatabaseManager {
 	public function processPool() {
 		$requests = [];
 		$count = 0;
-		while($count < $this->requestBatchThrottle and !empty($this->requestPool)) {
-			$requests[] = $this->pullFromPull();
+		while($count < $this->requestBatchThrottle and !$this->poolEmpty()) {
+			$requests[] = $this->pullFromPool();
 			$count++;
 		}
 
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new DatabaseRequestExecutor($this->getCredentials("main"), $requests));
+		if(!empty($requests)) { // don't spam unneeded async tasks
+			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
+		}
+	}
+
+	/**
+	 * Process all requests in the pool on the main thread
+	 */
+	public function processEntirePool() {
+		if(!$this->poolEmpty()) {
+			$requests = [];
+
+			while(!$this->poolEmpty()) {
+				$requests[] = $this->pullFromPool();
+			}
+			$executor = new DatabaseRequestExecutor($this->getCredentials("main"), $requests);
+
+			$start = microtime(true);
+			$executor->run();
+			$runFinish = microtime(true);
+			$executor->onCompletion($this->getPlugin()->getServer());
+			$finish = microtime(true);
+
+			$this->getPlugin()->getLogger()->info("Flushed request pool in " . round($total = $finish - $start, 3) . "s!");
+			$this->getPlugin()->getLogger()->debug("Run time: " . round($run = $runFinish - $start, 3) . "s");
+			$this->getPlugin()->getLogger()->debug("Complete time: " . round($run - $total, 3) . "s");
+		}
 	}
 
 	public function close() : bool {
