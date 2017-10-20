@@ -91,7 +91,11 @@ class FetchNetworkDatabaseRequest extends MySQLDatabaseRequest {
 					if($server instanceof NetworkServer) {
 						$server->updateFromRow($serverData);
 					} else {
-						$node->addServer(NetworkServer::fromRow($serverData));
+						if($serverData["id"] !== $map->getServer()->getNetworkId()) {
+							$node->addServer(NetworkServer::fromRow($serverData));
+						} else {
+							MainLogger::getLogger()->debug("Tried to track this server through fetch network request!");
+						}
 					}
 				} catch(\Throwable $e) {
 					MainLogger::getLogger()->debug("Error while fetching a network server!");

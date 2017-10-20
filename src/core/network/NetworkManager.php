@@ -43,6 +43,7 @@ class NetworkManager {
 		$server = $plugin->getServer();
 		$this->map = new NetworkMap();
 		$this->map->setServer(new NetworkServer($settings->getNested("settings.network.id"), "CrazedCraft: Server", $settings->getNested("settings.network.node"), $server->getIp(), $server->getPort(), count($server->getOnlinePlayers()), $server->getMaxPlayers(), [], time(), true));
+		$this->doNetworkSync(false);
 		$this->syncScheduler = new NetworkUpdateScheduler($this);
 	}
 
@@ -126,12 +127,14 @@ class NetworkManager {
 		$this->map->setNodes($nodes);
 	}
 
-	public function doNetworkSync() {
+	public function doNetworkSync(bool $fetch = true) {
 		if(!$this->isMapLocked()) {
 			$this->map->getServer()->setPlayerStatus(count($this->getCore()->getServer()->getOnlinePlayers()), $this->getCore()->getServer()->getMaxPlayers()); // set this servers player count before a network sync
 			$this->lockMap();
 			$this->getCore()->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($this->map->getServer()));
-			$this->getCore()->getDatabaseManager()->pushToPool(new FetchNetworkDatabaseRequest($this->map));
+			if($fetch) {
+				$this->getCore()->getDatabaseManager()->pushToPool(new FetchNetworkDatabaseRequest($this->map));
+			}
 		}
 	}
 

@@ -145,7 +145,7 @@ class NetworkServer {
 	}
 
 	/**
-	 * Check if the server is available to join
+	 * Check if the server is able to be joined
 	 *
 	 * @return bool
 	 */

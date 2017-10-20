@@ -142,41 +142,7 @@ class Main extends PluginBase {
 		$map = $this->getNetworkManager()->getMap();
 		$map->getServer()->setOnline(false); // disable this server
 
-		$node = $map->findNode($map->getServer()->getNode());
-		$server = null;
-		$usedNodes = [$map->getServer()->getNode() => true]; // list of nodes used
-		/** @var CorePlayer $p */
-		foreach($this->getServer()->getOnlinePlayers() as $p) { // attempt to transfer players to an online server rather than kicking them
-			if($server instanceof NetworkServer and $server->isAvailable()) { // try transferring player to server where other players have been transferred
-				$p->transfer($server->getHost(), $server->getPort());
-				continue;
-			}
-
-			if($node instanceof NetworkNode) { // try transfer player to same node as other players (starting with this servers node)
-				$s = $node->getSuitableServer();
-				if($s instanceof NetworkServer) {
-					$server = $s;
-					$p->transfer($s->getHost(), $s->getPort());
-					continue;
-				}
-			}
-
-			foreach($map->getNodes() as $n) { // loop over all nodes
-				if(!isset($usedNodes[$name = $node->getName()])) { // make sure we haven't already looped over a node
-					$node = $n;
-					$usedNodes[$name] = true;
-
-					$s = $node->getSuitableServer(); // try and find a server for the player to join
-					if($s instanceof NetworkServer) {
-						$server = $s;
-						$p->transfer($s->getHost(), $s->getPort());
-						continue;
-					}
-				}
-			}
-
-			$p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART")); // no available servers
-		}
+		$this->transferPlayers();
 
 		$this->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($map->getServer())); // push this servers status to the database and mark as offline
 
@@ -196,6 +162,13 @@ class Main extends PluginBase {
 	 */
 	public function getSettings() {
 		return $this->settings;
+	}
+
+	/**
+	 * @return RestartTask
+	 */
+	public function getRestartTask() {
+		return $this->restartTask;
 	}
 
 	/**
@@ -275,6 +248,61 @@ class Main extends PluginBase {
 		$chunks = $this->getServer()->getDefaultLevel()->getProvider()->getLoadedChunks();
 		foreach($chunks as $chunk) {
 			$chunk->allowUnload = false;
+		}
+	}
+
+	/**
+	 * Transfer all online players away from this server
+	 */
+	public function transferPlayers() {
+		$map = $this->getNetworkManager()->getMap();
+		$node = $map->findNode($map->getServer()->getNode());
+		$server = null;
+		$usedNodes = [$map->getServer()->getNode() => true]; // list of nodes used
+		/** @var CorePlayer $p */
+		foreach($this->getServer()->getOnlinePlayers() as $p) { // attempt to transfer players to an online server rather than kicking them
+			$transferred = false;
+			if($server instanceof NetworkServer and $server->isAvailable()) { // try transferring player to server where other players have been transferred
+				$p->transfer($server->getHost(), $server->getPort());
+				continue; // move to next player
+			}
+
+			if($node instanceof NetworkNode) { // try transfer player to same node as other players (starting with this servers node)
+				foreach($node->getServers() as $s) {
+					if($s->isAvailable()) {
+						$server = $s;
+						$transferred = true;
+						$p->transfer($s->getHost(), $s->getPort());
+						break; // break server loop
+					}
+				}
+
+				if($transferred) {
+					continue;
+				}
+			}
+
+			foreach($map->getNodes() as $n) { // loop over all nodes
+				if(!isset($usedNodes[$name = $n->getName()])) { // make sure we haven't already looped over a node
+					$node = $n;
+					$usedNodes[$name] = true;
+
+					foreach($node->getServers() as $s) {
+						if($s->isAvailable()) {
+							$server = $s;
+							$p->transfer($s->getHost(), $s->getPort());
+							$transferred = true;
+							break 2; // break server and node loop
+						}
+					}
+				}
+			}
+
+			if($transferred) {
+				continue;
+			}
+
+			$p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART")); // no available servers
 		}
 	}
 

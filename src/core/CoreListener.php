@@ -22,6 +22,8 @@ use core\entity\text\FloatingText;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
 use core\language\LanguageManager;
+use core\network\NetworkNode;
+use core\network\NetworkServer;
 use core\util\traits\CorePluginReference;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
@@ -182,7 +184,8 @@ class CoreListener implements Listener {
 		$player->sendCommandData();
 		$player->setNameTag(Utils::translateColors("&e" . $player->getName()));
 		foreach($this->getCore()->floatingText as $text) {
-			if($text instanceof FloatingText) $text->spawnTo($player);
+			if($text instanceof FloatingText)
+				$text->spawnTo($player);
 		}
 	}
 

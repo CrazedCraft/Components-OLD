@@ -26,6 +26,9 @@ class RestartTask extends PluginTask {
 	/** @var int */
 	private $time = 3600;
 
+	/** @var bool */
+	private $shutdown = false;
+
 	/**
 	 * RestartTask constructor
 	 *
@@ -38,21 +41,23 @@ class RestartTask extends PluginTask {
 	}
 
 	public function onRun($tick) {
-		if($this->time <= 10 and $this->time >= 1) {
-			$this->getOwner()->getServer()->broadcastTip(LanguageManager::getInstance()->translate("SECONDS_UNTIL_RESTART", "en", [$this->time]));
-		} elseif($this->time === 60) {
-			/** @var CorePlayer $p */
-			foreach($this->getOwner()->getServer()->getOnlinePlayers() as $p) {
-				$p->sendTranslatedMessage("ONE_MINUTE_UNTIL_RESTART", [], true);
+		if($this->time > 0) {
+			if($this->time <= 10 and $this->time >= 1) {
+				$this->getOwner()->getServer()->broadcastTip(LanguageManager::getInstance()->translate("SECONDS_UNTIL_RESTART", "en", [$this->time]));
+			} elseif($this->time === 60) {
+				/** @var CorePlayer $p */
+				foreach($this->getOwner()->getServer()->getOnlinePlayers() as $p) {
+					$p->sendTranslatedMessage("ONE_MINUTE_UNTIL_RESTART", [], true);
+				}
+			} elseif($this->time <= 0) {
+				if(!$this->shutdown) {
+					$this->shutdown = true;
+					$this->getOwner()->getServer()->forceShutdown();
+				}
+				return;
 			}
-		}  elseif($this->time <= 0) {
-			/** @var CorePlayer $p */
-			foreach($this->getOwner()->getServer()->getOnlinePlayers() as $p) {
-				$p->kick(LanguageManager::getInstance()->translateForPlayer($p, "SERVER_RESTART"));
-			}
-			$this->getOwner()->getServer()->forceShutdown();
+			$this->time--;
 		}
-		$this->time--;
 	}
 
 }

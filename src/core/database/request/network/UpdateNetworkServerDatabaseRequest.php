@@ -77,6 +77,7 @@ class UpdateNetworkServerDatabaseRequest extends MySQLDatabaseRequest {
 				$plugin->getLogger()->debug("No rows were effected whilst executing network server update request!");
 			} else { // user was updated
 				$plugin->getNetworkManager()->getMap()->setServer(unserialize($this->networkServer));
+				$plugin->getNetworkManager()->unlockMap();
 				$plugin->getLogger()->debug("Successfully completed network server update request!");
 			}
 		} elseif($result instanceof MysqlDatabaseErrorResult) { // log error to the console and let the user know something went wrong
