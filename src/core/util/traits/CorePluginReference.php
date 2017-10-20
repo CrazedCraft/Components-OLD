@@ -1,7 +1,7 @@
 <?php
 
 /**
- * NetworkPlayer.php – Components
+ * CorePluginReference.php – Components
  *
  * Copyright (C) 2015-2017 Jack Noordhuis
  *
@@ -12,26 +12,30 @@
  *
  * @author Jack Noordhuis
  *
- * Last modified on 15/10/2017 at 2:04 AM
+ * Last modified on 18/10/2017 at 6:31 PM
  *
  */
 
-namespace core\network;
+namespace core\util\traits;
+
+use core\Main;
 
 /**
- * Class to represent a player that is online on the network
+ * Simple trait for providing a reference to the cores main class
  */
-class NetworkPlayer {
+trait CorePluginReference {
 
-	/** @var string */
-	private $name;
+	/** @var Main */
+	private $core;
 
-	public function __construct(string $name) {
-		$this->name = $name;
+	protected function setCore(Main $plugin) {
+		$this->core = $plugin;
 	}
 
-	public function getName() : string {
-		return $this->name;
+	/**
+	 * @return Main
+	 */
+	public function getCore() {
+		return $this->core;
 	}
-
 }

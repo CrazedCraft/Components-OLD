@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * ReportCommand.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 27/08/2017 at 7:35 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -32,7 +32,7 @@ class ReportCommand extends CoreUserCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[0])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($args[0]);
+			$target = $this->getCore()->getServer()->getPlayer($args[0]);
 			if($target instanceof CorePlayer) {
 				if(isset($args[1])) {
 					Utils::broadcastStaffMessage("&a" . $player->getName() . " &ehas reported &c" . $target->getName() . "&e. &6Reason&7: " . $args[1]);

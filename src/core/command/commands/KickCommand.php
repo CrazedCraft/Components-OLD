@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * KickCommand.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 24/03/2017 at 11:24 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -37,10 +37,10 @@ class KickCommand extends CoreStaffCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[1])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($name = array_shift($args));
+			$target = $this->getCore()->getServer()->getPlayer($name = array_shift($args));
 			if($target instanceof CorePlayer) {
 				$victim = $target->getName();
-					$target->kick($this->getPlugin()->getLanguageManager()->translateForPlayer($target, "STAFF_KICK", [
+					$target->kick($this->getCore()->getLanguageManager()->translateForPlayer($target, "STAFF_KICK", [
 					$player->getName(),
 					implode(" ", $args),
 				]));

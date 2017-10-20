@@ -1,17 +1,17 @@
 <?php
 /**
- * CrazedCraft Network Components
+ * InfoCommand.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 09/08/2017 at 9:39 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -30,7 +30,7 @@ class InfoCommand extends CoreUserCommand {
 
 	public function onRun(CorePlayer $player, array $args) {
 		if(isset($args[0])) {
-			$target = $this->getPlugin()->getServer()->getPlayer($args[0]);
+			$target = $this->getCore()->getServer()->getPlayer($args[0]);
 			if($target instanceof CorePlayer) {
 				$player->sendMessage(LanguageUtils::translateColors("&a-=====- &e{$target->getName()}('s) Info &a-=====-\n&aPing&7: &6{$target->getPing()}ms\n&aDevice&7: &c{$target->getDeviceOSString()}"));
 				$time = new \DateTime("NOW", new \DateTimeZone("GMT"));

@@ -1,31 +1,32 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * CoreCommand.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
+
 namespace core\command;
 
 use core\Main;
+use core\util\traits\CorePluginReference;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 
-abstract class CoreCommand extends Command implements PluginIdentifiableCommand {
+abstract class CoreCommand extends Command {
 
-	/** @var Main */
-	private $plugin;
+	use CorePluginReference;
 
 	/**
 	 * DefaultCommand constructor.
@@ -37,15 +38,8 @@ abstract class CoreCommand extends Command implements PluginIdentifiableCommand 
 	 * @param array ...$aliases
 	 */
 	public function __construct(Main $plugin, $name, $description, $usage, array $aliases = []) {
+		$this->setCore($plugin);
 		parent::__construct($name, $description, $usage, $aliases);
-		$this->plugin = $plugin;
-	}
-
-	/**
-	 * @return Main
-	 */
-	public function getPlugin() {
-		return $this->plugin;
 	}
 
 	/**

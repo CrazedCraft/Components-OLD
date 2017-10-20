@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * CoreDatabaseManager.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 14/07/2016 at 12:44 AM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -44,8 +44,8 @@ class CoreDatabaseManager extends DatabaseManager {
 	 * Load up all the databases
 	 */
 	protected function init() {
-		$this->requestBatchThrottle = $this->getPlugin()->getSettings()->getNested("settings.request-batch-throttle");
-		$this->addCredentials(MySQLCredentials::fromArray($this->getPlugin()->getSettings()->getNested("settings.database")), "main");
+		$this->requestBatchThrottle = $this->getCore()->getSettings()->getNested("settings.request-batch-throttle");
+		$this->addCredentials(MySQLCredentials::fromArray($this->getCore()->getSettings()->getNested("settings.database")), "main");
 		$this->requestScheduler = new DatabaseRequestScheduler($this);
 	}
 
@@ -120,7 +120,7 @@ class CoreDatabaseManager extends DatabaseManager {
 		}
 
 		if(!empty($requests)) { // don't spam unneeded async tasks
-			$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
+			$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
 		}
 	}
 
@@ -139,12 +139,12 @@ class CoreDatabaseManager extends DatabaseManager {
 			$start = microtime(true);
 			$executor->run();
 			$runFinish = microtime(true);
-			$executor->onCompletion($this->getPlugin()->getServer());
+			$executor->onCompletion($this->getCore()->getServer());
 			$finish = microtime(true);
 
-			$this->getPlugin()->getLogger()->info("Flushed request pool in " . round($total = $finish - $start, 3) . "s!");
-			$this->getPlugin()->getLogger()->debug("Run time: " . round($run = $runFinish - $start, 3) . "s");
-			$this->getPlugin()->getLogger()->debug("Complete time: " . round($run - $total, 3) . "s");
+			$this->getCore()->getLogger()->info("Flushed request pool in " . round($total = $finish - $start, 3) . "s!");
+			$this->getCore()->getLogger()->debug("Run time: " . round($run = $runFinish - $start, 3) . "s");
+			$this->getCore()->getLogger()->debug("Complete time: " . round($run - $total, 3) . "s");
 		}
 	}
 

@@ -1,30 +1,29 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * MatchManager.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
 namespace core\game;
 
-use pocketmine\event\TimingsHandler;
-use pocketmine\plugin\Plugin;
+use core\Main;
+use core\util\traits\CorePluginReference;
 
 class MatchManager {
 
-	/** @var Plugin */
-	private $plugin;
+	use CorePluginReference;
 
 	///** @var TimingsHandler */
 	//private $timings;
@@ -38,17 +37,10 @@ class MatchManager {
 	/** @var Match[] */
 	private $matches = [];
 
-	public function __construct(Plugin $plugin) {
-		$this->plugin = $plugin;
+	public function __construct(Main $plugin) {
+		$this->setCore($plugin);
 		//$this->timings = new TimingsHandler("Match Manager");
 		$this->heartbeat = new MatchHeartbeat($this);
-	}
-
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin() {
-		return $this->plugin;
 	}
 
 	///**
@@ -117,7 +109,7 @@ class MatchManager {
 			}
 		}
 		//$this->timings->stopTiming();
-		$this->plugin->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
+		$this->getCore()->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
 		$this->lastTick = $currentTick;
 	}
 

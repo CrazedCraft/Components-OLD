@@ -11,7 +11,7 @@ class NetworkUpdateScheduler extends PluginTask {
 
 	public function __construct(NetworkManager $manager) {
 		$this->manager = $manager;
-		parent::__construct($plugin = $manager->getPlugin());
+		parent::__construct($plugin = $manager->getCore());
 		$plugin->getServer()->getScheduler()->scheduleRepeatingTask($this, $plugin->getSettings()->getNested("settings.network.sync-interval", 20));
 	}
 

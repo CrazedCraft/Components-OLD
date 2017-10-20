@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * Match.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -95,7 +95,7 @@ class Match {
 	 */
 	public function inMatchAsPlayerByName(string $name, bool $findPlayer = false) {
 		if($findPlayer) {
-			$target = $this->manager->getPlugin()->getServer()->getPlayerExact($name);
+			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
 				return isset($this->players[$target->getName()]) and $target->getUniqueId()->toString() === $this->players[$target->getName()];
 			}
@@ -158,7 +158,7 @@ class Match {
 	 */
 	public function inMatchAsSpectatorByName(string $name, bool $findPlayer = false) {
 		if($findPlayer) {
-			$target = $this->manager->getPlugin()->getServer()->getPlayerExact($name);
+			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
 				return isset($this->spectators[$target->getName()]) and $target->getUniqueId()->toString() === $this->spectators[$target->getName()];
 			}

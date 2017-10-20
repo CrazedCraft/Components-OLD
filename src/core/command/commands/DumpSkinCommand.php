@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * DumpSkinCommand.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 23/09/2016 at 7:48 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -30,7 +30,7 @@ class DumpSkinCommand extends CoreUserCommand {
 	}
 
 	public function onRun(CorePlayer $player, array $args) {
-		$dir = $this->getPlugin()->getDataFolder() . "skin_dumps" . DIRECTORY_SEPARATOR;
+		$dir = $this->getCore()->getDataFolder() . "skin_dumps" . DIRECTORY_SEPARATOR;
 		if(!is_dir($dir)) mkdir($dir);
 		$file = fopen($dir . strtolower(isset($args[0]) ? $args[0] : $player->getSkinName()) . ".skin", "w");
 		fwrite($file, $player->getSkinData());

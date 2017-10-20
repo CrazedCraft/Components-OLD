@@ -1,18 +1,18 @@
 <?php
 
 /**
- * CrazedCraft Network Components
+ * CoreListener.php – Components
  *
- * Copyright (C) 2016 CrazedCraft Network
+ * Copyright (C) 2015-2017 Jack Noordhuis
  *
- * This is private software, you cannot redistribute it and/or modify any way
- * unless otherwise given permission to do so. If you have not been given explicit
+ * This is private software, you cannot redistribute and/or modify it in any way
+ * unless given explicit permission to do so. If you have not been given explicit
  * permission to view or modify this software you should take the appropriate actions
  * to remove this software from your device immediately.
  *
- * @author JackNoordhuis
+ * @author Jack Noordhuis
  *
- * Created on 12/07/2016 at 9:13 PM
+ * Last modified on 15/10/2017 at 2:04 AM
  *
  */
 
@@ -24,6 +24,7 @@ use core\entity\text\FloatingText;
 use core\gui\container\ContainerGUI;
 use core\gui\item\GUIItem;
 use core\language\LanguageManager;
+use core\util\traits\CorePluginReference;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
@@ -51,8 +52,7 @@ use pocketmine\Player;
 
 class CoreListener implements Listener {
 
-	/** @var Main */
-	private $plugin;
+	use CorePluginReference;
 
 	/* Array of commands that a player can execute at any time */
 	public static $whitelistedCommands = [
@@ -98,15 +98,9 @@ class CoreListener implements Listener {
 	 * @param Main $plugin
 	 */
 	public function __construct(Main $plugin) {
-		$this->plugin = $plugin;
-		$plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
-	}
+		$this->setCore($plugin);
 
-	/**
-	 * @return mixed
-	 */
-	public function getPlugin() {
-		return $this->getPlugin();
+		$plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
 	}
 
 	/**
@@ -115,8 +109,8 @@ class CoreListener implements Listener {
 	 * @param QueryRegenerateEvent $event
 	 */
 	public function onQueryRegenerate(QueryRegenerateEvent $event) {
-		$event->setPlayerCount($this->plugin->getNetworkManager()->getOnlinePlayers()); // set the servers online players to the network value
-		$event->setMaxPlayerCount($this->plugin->getNetworkManager()->getMaxPlayers()); // set the available slots to the network value
+		$event->setPlayerCount($this->getCore()->getNetworkManager()->getOnlinePlayers()); // set the servers online players to the network value
+		$event->setMaxPlayerCount($this->getCore()->getNetworkManager()->getMaxPlayers()); // set the available slots to the network value
 	}
 
 	/**
@@ -145,10 +139,11 @@ class CoreListener implements Listener {
 	public function onPreLogin(PlayerPreLoginEvent $event) {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
+		$plugin = $this->getCore();
 		$ips = 0;
 		$player->setDataProperty(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_TYPE_BYTE, 1);
 		/** @var CorePlayer $p */
-		foreach($this->plugin->getServer()->getOnlinePlayers() as $p) {
+		foreach($$plugin->getServer()->getOnlinePlayers() as $p) {
 			$p->hidePlayer($player);
 			if(!$p->isAuthenticated())
 				$player->hidePlayer($p);
@@ -169,8 +164,8 @@ class CoreListener implements Listener {
 			$event->setCancelled(true);
 			return;
 		}
-		$this->plugin->getDatabaseManager()->pushToPool(new AuthLoginDatabaseRequest($player->getName()));
-		$this->plugin->getDatabaseManager()->pushToPool(new BanCheckDatabaseRequest(strtolower($player->getName()), $player->getAddress(), $player->getClientId(), $player->getXUID()));
+		$this->getCore()->getDatabaseManager()->pushToPool(new AuthLoginDatabaseRequest($player->getName()));
+		$this->getCore()->getDatabaseManager()->pushToPool(new BanCheckDatabaseRequest(strtolower($player->getName()), $player->getAddress(), $player->getClientId(), $player->getXUID()));
 		$player->setChatMuted(true);
 	}
 
@@ -185,7 +180,7 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$player->sendCommandData();
 		$player->setNameTag(Utils::translateColors("&e" . $player->getName()));
-		foreach($this->plugin->floatingText as $text) {
+		foreach($this->getCore()->floatingText as $text) {
 			if($text instanceof FloatingText) $text->spawnTo($player);
 		}
 	}
@@ -318,8 +313,9 @@ class CoreListener implements Listener {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
 		$event->setQuitMessage("");
-		if($player->isAuthenticated())
+		if($player->isAuthenticated()) {
 			$player->doGeneralUpdate();
+		}
 	}
 
 	/**
@@ -348,6 +344,7 @@ class CoreListener implements Listener {
 		/** @var CorePlayer $source */
 		$source = $event->getPlayer();
 		$pk = $event->getPacket();
+		$plugin = $this->getCore();
 		if($pk instanceof LoginPacket) { // Intercept the client OS info
 			$source->setDeviceOs($pk->osType);
 		} elseif($pk instanceof CommandStepPacket) { // Handle commands
@@ -407,7 +404,7 @@ class CoreListener implements Listener {
 									$player = "@a";
 									break;
 								case "randomPlayer":
-									$players = $this->plugin->getServer()->getOnlinePlayers();
+									$players = $plugin->getServer()->getOnlinePlayers();
 									$player = $players[array_rand($players)]->getName();
 									break;
 								case "allEntities":
@@ -415,34 +412,34 @@ class CoreListener implements Listener {
 									$player = "@e";
 									break;
 								default:
-									$this->plugin->getServer()->getLogger()->warning("Unhandled selector for target argument!");
-									var_dump($selector);
+									$plugin->getLogger()->warning("Unhandled selector for target argument!");
+									$plugin->getLogger()->debug("Selector:\n" . $selector);
 									$player = " ";
 									break;
 							}
 							$command .= " " . $player;
 						} else { // Another argument type?
-							$this->plugin->getServer()->getLogger()->warning("No selector set for target argument!");
-							var_dump($data);
+							$plugin->getLogger()->warning("No selector set for target argument!");
+							$plugin->getLogger()->debug("Data:\n" . $data);
 						}
 					} elseif(is_string($data)) { // Normal string argument
 						$command .= " " . $data;
 					} else { // Unhandled argument type
-						$this->plugin->getServer()->getLogger()->warning("Unhandled command data type!");
-						var_dump($data);
+						$plugin->getLogger()->warning("Unhandled command data type!");
+						$plugin->getLogger()->debug("Data:\n" . $data);
 					}
 				}
 			}
 			$ev = new PlayerCommandPreprocessEvent($source, $command);
-			$this->plugin->getServer()->getPluginManager()->callEvent($ev);
+			$plugin->getServer()->getPluginManager()->callEvent($ev);
 			if($ev->isCancelled()) {
 				return;
 			}
-			$this->plugin->getServer()->dispatchCommand($source, substr($ev->getMessage(), 1));
+			$plugin->getServer()->dispatchCommand($source, substr($ev->getMessage(), 1));
 		} elseif($pk instanceof AdventureSettingsPacket) {
 			if(($source->isSurvival() or $source->isAdventure()) and ($pk->flags >> 9) & 0x01 === 1 or !$source->isSpectator() && ($pk->flags >> 7) & 0x01 === 1) {
 				$event->setCancelled(true);
-				$source->kick($this->plugin->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
+				$source->kick($plugin->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
 			}
 		} elseif($pk instanceof ContainerSetSlotPacket) {
 			$inv = $source->getWindowById($pk->windowid);
