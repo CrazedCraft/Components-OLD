@@ -82,7 +82,7 @@ class CoreDatabaseManager extends DatabaseManager {
 	}
 
 	/**
-	 * Add a request to the pull
+	 * Add a request to the pool
 	 *
 	 * @param MySQLDatabaseRequest $request
 	 */
@@ -91,7 +91,7 @@ class CoreDatabaseManager extends DatabaseManager {
 	}
 
 	/**
-	 * Pull a request from the pull
+	 * Pull a request from the pool
 	 *
 	 * @return MySQLDatabaseRequest
 	 */
@@ -100,7 +100,7 @@ class CoreDatabaseManager extends DatabaseManager {
 	}
 
 	/**
-	 * Check if the request pull is empty
+	 * Check if the request pool is empty
 	 *
 	 * @return bool
 	 */
