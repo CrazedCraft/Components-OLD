@@ -644,7 +644,7 @@ class CorePlayer extends Player {
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
-			$entity->setOffset(new Vector3(0, -3, 0));
+			$entity->setOffset(new Vector3(0, -1, 0));
 		} else {
 			$entity->kill();
 		}

@@ -61,14 +61,14 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @param bool $value
 	 */
 	public function setVisible($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, !$value);
+		$this->setGenericFlag(Entity::DATA_FLAG_INVISIBLE, !$value);
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function isVisible() {
-		return (bool) $this->getDataFlag(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_FLAGS);
+		return $this->getGenericFlag(Entity::DATA_FLAG_INVISIBLE);
 	}
 
 	/**

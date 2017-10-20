@@ -38,8 +38,12 @@ class KillAuraDetector extends HumanNPC {
 	/** @var int */
 	protected $visibleTicks = 0;
 
+	/** @var int */
+	protected $invisibleTicks = 900; // 45 seconds
+
 	public function initEntity() {
 		parent::initEntity();
+		$this->setVisible(false);
 		$this->setScale(0.2);
 	}
 
@@ -89,6 +93,12 @@ class KillAuraDetector extends HumanNPC {
 				$attacker = $source->getDamager();
 				if($attacker instanceof CorePlayer and $attacker->getId() === ($target = $this->getTarget())->getId()) {
 					$target->addKillAuraTrigger();
+
+					if($this->isVisible()) {
+						$this->visibleTicks += 20; // stay visible for an additional second
+					} else {
+						$this->invisibleTicks -= 40; // reduce time until potentially visible by 2 seconds
+					}
 				}
 			}
 		} else {
@@ -141,45 +151,59 @@ class KillAuraDetector extends HumanNPC {
 	 */
 	public function onUpdate($currentTick) {
 		parent::onUpdate($currentTick);
-		$wasVisible = $this->isVisible();
-		if($this->visibleTicks > 0) {
-			$this->visibleTicks--;
-		} else {
-			if($this->isVisible()) {
-				$this->setVisible(false);
-			}
-		}
 
 		if($this->hasValidTarget()) {
 			$oldPos = $this->getPosition();
 			$newPos = $this->getNewPosition();
-			if(!$newPos->equals($oldPos)) {
+			if(!$newPos->equals($oldPos)) { // if the player has moved
 				$this->x = $newPos->x;
 				$this->y = $newPos->y;
 				$this->z = $newPos->z;
 				$this->updateMovement();
 			}
-			if(!$wasVisible and ($this->ticksLived % 80) == 0) {
-				$triggers = ($target = $this->getTarget())->getKillAuraTriggers();
-				if($triggers <= 3) { // triggers <= 3: 1 in 3 chance
-					$chance = mt_rand(1, 3);
-					$this->visibleTicks = (20 * $triggers) + 20;
-				} elseif($triggers >= 7) { // triggers >= 7: 1 in 1 chance
-					$chance = 1;
-					$this->visibleTicks = (20 * $triggers) + 80;
-				} else { // triggers > 3 and triggers < 7: 1 in 2 chance
-					$chance = mt_rand(1, 2);
-					$this->visibleTicks = (20 * $triggers) + 40;
-				}
 
-				if($chance == 1) {
-					$this->setVisible(true);
+			if(!$this->isVisible()) {
+				if($this->visibleTicks > 0) {
+					$this->visibleTicks--;
+				} else {
+					$this->setVisible(false);
+					$this->invisibleTicks = 1800; // 1.5 minutes
+				}
+			} else {
+				if($this->invisibleTicks > 0) {
+					$this->invisibleTicks--;
+				} else {
+					$triggers = ($target = $this->getTarget())->getKillAuraTriggers();
+					$rand = mt_rand(1, 100);
+					if($triggers <= 3) {
+						if($rand <= 15) {
+							$this->visibleTicks = (20 * $triggers) + 20; // 4 seconds max, 2 seconds min
+							$this->setVisible(true);
+						} else {
+							$this->invisibleTicks = 800; // 40 seconds
+						}
+					} elseif($triggers >= 7) {
+						if($rand <= 80) {
+							$this->visibleTicks = (20 * $triggers) + 80; // 15 seconds max, 11.7 seconds min
+							$this->setVisible(true);
+						} else {
+							$this->invisibleTicks = 200; // 10 seconds
+						}
+					} else {
+						if($rand <= 40) {
+							$this->visibleTicks = (20 * $triggers) + 40; // 8 seconds max, 6 seconds min
+							$this->setVisible(true);
+						} else {
+							$this->invisibleTicks = 800; // 25 seconds
+						}
+					}
 				}
 			}
 		} else {
 			$this->close();
 		}
-		return true;
+
+		return true; // always update
 	}
 
 	/**
