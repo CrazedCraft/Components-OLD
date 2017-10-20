@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AuthDatabase.php – Components
+ * DatabaseResult.php – Components
  *
  * Copyright (C) 2015-2017 Jack Noordhuis
  *
@@ -12,7 +12,7 @@
  *
  * @author Jack Noordhuis
  *
- * Created on 29/09/2017 at 9:32 PM
+ * Last modified on 20/10/2017 at 5:50 PM
  *
  */
 
