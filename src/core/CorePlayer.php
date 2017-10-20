@@ -903,7 +903,7 @@ class CorePlayer extends Player {
 	public function onChat(PlayerChatEvent $event) {
 		$message = $event->getMessage();
 		$event->setCancelled();
-		if($this->authenticated) {
+		if($this->isOnline() and $this->authenticated) {
 			if(Main::$debug) $start = microtime(true);
 			if(($key = $this->getCore()->getLanguageManager()->check($message)) !== false) {
 				$this->sendTranslatedMessage(( $key === "" ? "BLOCKED_MESSAGE" : $key), [], true);
