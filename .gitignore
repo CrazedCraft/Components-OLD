@@ -12,6 +12,7 @@
 .idea/**/sqldataSources.xml
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
+.idea/sqldialects.xml
 
 # File-based project format:
 *.iws
