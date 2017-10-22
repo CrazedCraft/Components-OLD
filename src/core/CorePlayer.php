@@ -806,9 +806,13 @@ class CorePlayer extends Player {
 			switch($this->registrationStatus) {
 				// password
 				default:
-					$this->hash = Utils::hash(strtolower($this->getName()), $message);
-					$this->registrationStatus = self::AUTH_CONFIRM;
-					$this->sendTranslatedMessage("CONFIRM_PASSWORD_PROMPT", [], true);
+					if(strlen($message) > 3) {
+						$this->hash = Utils::hash(strtolower($this->getName()), $message);
+						$this->registrationStatus = self::AUTH_CONFIRM;
+						$this->sendTranslatedMessage("CONFIRM_PASSWORD_PROMPT", [], true);
+					} else {
+						$this->sendMessage(LanguageUtils::translateColors("&c- &6Your password must be at least 3 characters long!"));
+					}
 					break;
 				// password confirmation
 				case self::AUTH_CONFIRM:
