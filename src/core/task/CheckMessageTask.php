@@ -45,23 +45,18 @@ class CheckMessageTask extends AsyncTask {
 	/** @var string */
 	protected $message;
 
-	/** @var bool */
-	protected $isMuted;
-
 	/* Results */
 	const SUCCESS = "result.success";
 	const MESSAGES_SIMILAR = "result.similar";
 	const CHAT_COOLDOWN = "result.cooldown";
 	const CONTAINS_PASSWORD = "result.contains.password";
-	const CHAT_MUTED = "result.muted";
 
-	public function __construct(string $name, string $hash, string $lastMessage, int $lastMessageTime, string $message, bool $isMuted) {
+	public function __construct(string $name, string $hash, string $lastMessage, int $lastMessageTime, string $message) {
 		$this->name = $name;
 		$this->hash = $hash;
 		$this->lastMessage = $lastMessage;
 		$this->lastMessageTime = $lastMessageTime;
 		$this->message = $message;
-		$this->isMuted = $isMuted;
 	}
 
 	/**
@@ -69,23 +64,19 @@ class CheckMessageTask extends AsyncTask {
 	 */
 	public function onRun() {
 		// chat filter, formatting, check for password in chat etc
-		if(!$this->isMuted) {
-			if(!LanguageManager::containsPassword($this->name, $this->message, $this->hash)) {
-				if(floor(microtime(true) - $this->lastMessageTime) >= 3) {
-					similar_text(strtolower($this->lastMessage), strtolower($this->message), $percent);
-					if(round($percent) < 80) {
-						$this->setResult(self::SUCCESS);
-					} else {
-						$this->setResult(self::MESSAGES_SIMILAR);
-					}
+		if(!LanguageManager::containsPassword($this->name, $this->message, $this->hash)) {
+			if(floor(microtime(true) - $this->lastMessageTime) >= 3) {
+				similar_text(strtolower($this->lastMessage), strtolower($this->message), $percent);
+				if(round($percent) < 80) {
+					$this->setResult(self::SUCCESS);
 				} else {
-					$this->setResult(self::CHAT_COOLDOWN);
+					$this->setResult(self::MESSAGES_SIMILAR);
 				}
 			} else {
-				$this->setResult(self::CONTAINS_PASSWORD);
+				$this->setResult(self::CHAT_COOLDOWN);
 			}
 		} else {
-			$this->setResult(self::CHAT_MUTED);
+			$this->setResult(self::CONTAINS_PASSWORD);
 		}
 	}
 
@@ -111,9 +102,6 @@ class CheckMessageTask extends AsyncTask {
 						return;
 					case self::CONTAINS_PASSWORD:
 						$player->sendTranslatedMessage("PASSWORD_IN_CHAT", [], true);
-						return;
-					case self::CHAT_MUTED:
-						$player->sendTranslatedMessage("CANNOT_CHAT_WHILE_MUTED", [], true);
 						return;
 				}
 			} else {

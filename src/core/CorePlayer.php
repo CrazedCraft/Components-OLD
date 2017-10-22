@@ -51,6 +51,33 @@ class CorePlayer extends Player {
 
 	use CorePluginReference;
 
+	/**
+	 * Array of block ids for the anti-fly to ignore
+	 *
+	 * @var int[]
+	 */
+	protected static $ignoredBlocks = [
+		Block::STONE_SLAB,
+		Block::WOODEN_SLAB,
+		Block::STONE_SLAB2,
+		Block::NETHER_BRICK_STAIRS,
+		Block::DARK_OAK_STAIRS,
+		Block::ACACIA_STAIRS,
+		Block::JUNGLE_STAIRS,
+		Block::BIRCH_STAIRS,
+		Block::SPRUCE_STAIRS,
+		Block::BRICK_STAIRS,
+		Block::COBBLESTONE_STAIRS,
+		Block::OAK_STAIRS,
+		Block::PURPUR_STAIRS,
+		Block::QUARTZ_STAIRS,
+		Block::RED_SANDSTONE_STAIRS,
+		Block::SANDSTONE_STAIRS,
+		Block::STONE_BRICK_STAIRS,
+		Block::STONE_STAIRS,
+		Block::WOODEN_STAIRS
+	];
+
 	/** @var Main */
 	private $core;
 
@@ -293,7 +320,7 @@ class CorePlayer extends Player {
 	 * @return bool
 	 */
 	public function hasChatMuted() {
-		return $this->hasChatMuted();
+		return $this->chatMuted;
 	}
 
 	/**
@@ -401,8 +428,13 @@ class CorePlayer extends Player {
 		return $this->deviceOs;
 	}
 
+	/**
+	 * Get a string representation of the players device operating system
+	 *
+	 * @return string
+	 */
 	public function getDeviceOSString() {
-		switch($this->deviceOs) {
+		switch($this->getDeviceOs()) {
 			case self::OS_ANDROID:
 				return "Android";
 			case self::OS_IOS:
@@ -422,6 +454,10 @@ class CorePlayer extends Player {
 			default:
 				return "Unknown";
 		}
+	}
+
+	public function getInAirTicks() {
+		return $this->inAirTicks;
 	}
 
 	/**
@@ -611,6 +647,7 @@ class CorePlayer extends Player {
 		if($this->killAuraTriggers >= 12) {
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected kill-aura!");
 			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
+			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for kill-aura!");
 		}
 	}
 
@@ -648,6 +685,102 @@ class CorePlayer extends Player {
 		} else {
 			$entity->kill();
 		}
+	}
+
+	/**
+	 * Checks the amount of times a player has triggered the reach detection and handles the result accordingly
+	 */
+	public function checkReachTriggers() {
+		if($this->reachChances >= 12) {
+			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected reach!");
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
+			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for reach!");
+		}
+	}
+
+	/**
+	 * Increases or decreases the amount of reach triggers based on distance and ping
+	 *
+	 * @param int $distance
+	 */
+	public function updateReachTriggers(int $distance) {
+		if($distance >= 6.5 and $this->getPing() <= 200) {
+			$this->reachChances += 1;
+		} elseif($distance >= 8 and $this->getPing() <= 600) {
+			$this->reachChances += 2;
+		} elseif($distance >= 12) {
+			$this->reachChances += 4;
+		} else {
+			$this->reachChances--;
+			return;
+		}
+
+		$this->checkReachTriggers();
+	}
+
+	/**
+	 * Checks the amount of times a player has triggered the fly detection and handles the result accordingly
+	 */
+	public function checkFlyTriggers() {
+		if($this->flyChances >= 16) {
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
+			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for flying!");
+		}
+	}
+
+	/**
+	 * @param Vector3 $to
+	 * @param int $yDistance
+	 */
+	public function updateFlyTriggers(Vector3 $to, int $yDistance) {
+		//if(!$this->getAllowFlight()) { // make sure the player isn't allowed to fly
+			$blockInId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() + 1.5), $to->getFloorZ()); // block at players head height (used to make sure player isn't in a transparent block (cobwebs, water, etc)
+			$blockOnId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY(), $to->getFloorZ()); // block the player is on (use this for checking slabs, stairs, etc)
+			$blockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 1), $to->getFloorZ()); // block beneath the player
+			$inAir = !in_array($blockOnId, self::$ignoredBlocks) and $blockBelowId === Block::AIR and $blockInId === Block::AIR;
+
+			if(microtime(true) - $this->lastDamagedTime >= 5) { // player hasn't taken damage for five seconds
+				// check fly upwards
+				if($yDistance >= 0.05 // TODO: Improve this so detection isn't triggered when players are moving horizontally
+					and $this->lastMoveTime - $this->lastJumpTime >= 2) { // if the movement wasn't downwards and the player hasn't jumped for 2 seconds
+					if($inAir) { // make sure the player isn't standing on a slab or stairs and the block directly below them is air
+						$secondBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 2), $to->getFloorZ());
+						if($secondBlockBelowId === Block::AIR) { // if two blocks directly below them is air
+							$thirdBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getFloorY() - 3, $to->getFloorZ());
+							if($thirdBlockBelowId === Block::AIR) { // if three blocks directly below them is air
+								$this->flyChances += 2;
+							} else {
+								$this->flyChances += 1;
+							}
+						}
+
+						if($yDistance >= 0.6) {
+							$this->flyChances += 4;
+						} elseif($yDistance >= 0.45) {
+							$this->flyChances += 2;
+						} elseif($yDistance >= 0.38) {
+							$this->flyChances += 1;
+						}
+					} else {
+						if($this->flyChances > 0) { // player isn't in the air
+							$this->flyChances -= 1;
+						}
+					}
+				} else {
+					if($this->flyChances > 0) { // player just likes to jump
+						$this->flyChances -= 2;
+					}
+				}
+			}
+
+			//if($this->getInAirTicks() >= 100) { // been in air for more than 5 seconds
+			//	if($inAir) {
+			//		$this->flyChances += 2;
+			//	}
+			//}
+
+			$this->checkFlyTriggers();
+		//}
 	}
 
 	public function handleAuth(string $message) {
@@ -737,21 +870,6 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * Returns an array of data to be saved to the database
-	 *
-	 * @return array
-	 */
-	public function getAuthData() {
-		return [
-			"ip" => $this->getAddress(),
-			"lang" => $this->lang,
-			"coins" => $this->coins,
-			"timePlayed" => time() - $this->loginTime,
-			"lastLogin" => $this->loginTime
-		];
-	}
-
-	/**
 	 * Execute a general database update request for this player
 	 */
 	public function doGeneralUpdate() {
@@ -775,7 +893,7 @@ class CorePlayer extends Player {
 	 * @return bool
 	 */
 	public function sendMessage($message, $isImportant = false) {
-		if(!$isImportant and $this->chatMuted) {
+		if(!$isImportant and $this->hasChatMuted()) {
 			return false;
 		}
 		parent::sendMessage($message);
@@ -793,25 +911,10 @@ class CorePlayer extends Player {
 			parent::attack($damage, $source);
 			if(!$source->isCancelled()) {
 				$this->lastDamagedTime = microtime(true);
-
 				if($source instanceof EntityDamageByEntityEvent and $source->getCause() === EntityDamageEvent::CAUSE_ENTITY_ATTACK) {
 					$attacker = $source->getDamager();
 					if($attacker instanceof CorePlayer) {
-						$distance = $this->distance($attacker);
-						if($distance >= 6.5 and $this->getPing() <= 200) {
-							$attacker->reachChances += 1;
-						} elseif($distance >= 8 and $this->getPing() <= 600) {
-							$attacker->reachChances += 2;
-						} elseif($distance >= 12) {
-							$attacker->reachChances += 4;
-						} else {
-							$attacker->reachChances--;
-						}
-
-						if($attacker->reachChances >= 12) {
-							Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected reach!");
-							$attacker->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
-						}
+						$attacker->updateReachTriggers($distance = $this->distance($attacker));
 					}
 				}
 			}
@@ -853,7 +956,7 @@ class CorePlayer extends Player {
 					$this->kick("You have been kicked due to your ping ({$this->getPing()}ms)");
 				}
 			} else {
-				if($this->pingChances >= 1) {
+				if($this->pingChances > 0) {
 					$this->pingChances--;
 				}
 			}
@@ -866,6 +969,7 @@ class CorePlayer extends Player {
 				}
 			}
 		}
+
 		return parent::onUpdate($currentTick);
 	}
 
@@ -903,18 +1007,22 @@ class CorePlayer extends Player {
 	public function onChat(PlayerChatEvent $event) {
 		$message = $event->getMessage();
 		$event->setCancelled();
-		if($this->isOnline() and $this->authenticated) {
-			if(Main::$debug) $start = microtime(true);
-			if(($key = $this->getCore()->getLanguageManager()->check($message)) !== false) {
-				$this->sendTranslatedMessage(( $key === "" ? "BLOCKED_MESSAGE" : $key), [], true);
+		if($this->isOnline() and $this->isAuthenticated()) {
+			//if(Main::$debug) $start = microtime(true);
+			if(!$this->hasChatMuted()) {
+				if(($key = $this->getCore()->getLanguageManager()->check($message)) !== false) {
+					$this->sendTranslatedMessage(($key === "" ? "BLOCKED_MESSAGE" : $key), [], true);
+				} else {
+					$this->getServer()->getScheduler()->scheduleAsyncTask(new CheckMessageTask($this->getName(), $this->hash, $this->lastMessage, $this->lastMessageTime, $message));
+				}
 			} else {
-				$this->getServer()->getScheduler()->scheduleAsyncTask(new CheckMessageTask($this->getName(), $this->hash, $this->lastMessage, $this->lastMessageTime, $message, $this->chatMuted));
+				$this->sendTranslatedMessage("CANNOT_CHAT_WHILE_MUTED", [], true);
 			}
-			if(Main::$debug and isset($start)) {
-				$end = microtime(true);
-				echo "<----------- MESSAGE CHECK ----------->" . PHP_EOL;
-				echo "TIME: " . round($end - $start, 3) . "s " . PHP_EOL;
-			}
+			//if(Main::$debug and isset($start)) {
+			//	$end = microtime(true);
+			//	echo "<----------- MESSAGE CHECK ----------->" . PHP_EOL;
+			//	echo "TIME: " . round($end - $start, 3) . "s " . PHP_EOL;
+			//}
 		} else {
 			$this->handleAuth($message);
 		}
@@ -925,37 +1033,8 @@ class CorePlayer extends Player {
 	 */
 	public function onMove(PlayerMoveEvent $event) {
 		$this->lastMoveTime = $time = microtime(true);
-		$distance = round($event->getTo()->getY() - $event->getFrom()->getY(), 3);
-		if($distance >= 0.05 and $time - $this->lastJumpTime >= 5) {
-			$block = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 1, $this->getFloorZ()));
-			if(!$block instanceof Slab and $block->getId() === Block::AIR and (microtime(true) - $this->lastDamagedTime) >= 5) {
-				$second = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 2, $this->getFloorZ()));
-				if($second->getId() === Block::AIR) {
-					$third = $this->getLevel()->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 3, $this->getFloorZ()));
-					if($third->getId() === Block::AIR) {
-						$this->flyChances += 2;
-					} else {
-						$this->flyChances += 1;
-					}
-				} else {
-					if($distance >= 0.5) {
-						$this->flyChances += 5;
-					} elseif($distance >= 0.38) {
-						$this->flyChances += 2;
-					} elseif($distance >= 0.36) {
-						$this->flyChances += 1;
-					}
-				}
-			} else {
-				if($this->flyChances >= 1) {
-					$this->flyChances -= 1;
-				}
-			}
-		}
 
-		if($this->flyChances >= 12) {
-			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
-		}
+		$this->updateFlyTriggers($event->getTo(), round($event->getTo()->getY() - $event->getFrom()->getY(), 3));
 	}
 
 	/**

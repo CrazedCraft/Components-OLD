@@ -37,7 +37,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 	private $username;
 
 	public function __construct(string $name) {
-		$this->username = $name;
+		$this->username = strtolower($name);
 	}
 
 	/**
@@ -82,6 +82,10 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 						"id" => MysqlDatabaseSelectResult::TYPE_INT,
 					]); // ensure the result has the correct types
 					$row = $result->rows[0];
+					if(($hash = $row["hash"]) === "" or $hash === null) { // user hasn't registered properly
+						$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
+						return;
+					}
 					$player->setRegistered(true);
 					$player->setLastIp($row["lastip"]);
 					$player->setHash($row["hash"]);
