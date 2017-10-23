@@ -27,6 +27,8 @@ use pocketmine\network\protocol\Info;
 
 class ServerSelector extends GUIItem {
 
+	const GUI_ITEM_ID = "server_selector";
+
 	public function __construct($parent = null) {
 		parent::__construct(Item::get(Item::COMPASS, 0, 1), $parent);
 		$this->setCustomName(LanguageUtils::translateColors("&l&dServer Selector"));
