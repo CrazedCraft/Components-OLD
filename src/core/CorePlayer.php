@@ -968,7 +968,7 @@ class CorePlayer extends Player {
 
 		if(($currentTick % 1200) == 0) { // every minute
 			if($this->state === self::STATE_LOBBY) {
-				if($this->killAuraTriggers >= 1) {
+				if($this->killAuraTriggers > 0) {
 					$this->killAuraTriggers--;
 				}
 			}

@@ -22,6 +22,7 @@ use core\Utils;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\level\Level;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\PlayerListPacket;
@@ -156,9 +157,7 @@ class KillAuraDetector extends HumanNPC {
 			$oldPos = $this->getPosition();
 			$newPos = $this->getNewPosition();
 			if(!$newPos->equals($oldPos)) { // if the player has moved
-				$this->x = $newPos->x;
-				$this->y = $newPos->y;
-				$this->z = $newPos->z;
+				$this->setPosition($newPos);
 				$this->updateMovement();
 			}
 
@@ -243,6 +242,34 @@ class KillAuraDetector extends HumanNPC {
 	 */
 	public function getDrops() {
 		return [];
+	}
+
+	/**
+	 * Make sure the detector isn't spawned to any other players when its position is updated
+	 *
+	 * @param Vector3 $pos
+	 *
+	 * @return bool
+	 */
+	public function setPosition(Vector3 $pos){
+		if($this->closed){
+			return false;
+		}
+
+		if($pos instanceof Position and $pos->level !== null and $pos->level !== $this->level){
+			if($this->switchLevel($pos->getLevel()) === false){
+				return false;
+			}
+		}
+
+		$this->x = $pos->x;
+		$this->y = $pos->y;
+		$this->z = $pos->z;
+
+		$radius = $this->width / 2;
+		$this->boundingBox->setBounds($pos->x - $radius, $pos->y, $pos->z - $radius, $pos->x + $radius, $pos->y + $this->height, $pos->z + $radius);
+
+		return true;
 	}
 
 }

@@ -47,14 +47,14 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @param bool $value
 	 */
 	public function setImmobile($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_NO_AI, !$value);
+		$this->setGenericFlag(Entity::DATA_FLAG_NO_AI, !$value);
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function isImmobile() : bool {
-		return (bool) $this->getDataFlag(Entity::DATA_FLAG_NO_AI, Entity::DATA_FLAGS);
+		return (bool) $this->getGenericFlag(Entity::DATA_FLAG_NO_AI);
 	}
 
 	/**
@@ -75,28 +75,28 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	 * @return bool
 	 */
 	public function isNameTagVisible() {
-		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG);
+		return $this->getGenericFlag(Entity::DATA_FLAG_CAN_SHOW_NAMETAG);
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function isNameTagAlwaysVisible() {
-		return $this->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG);
+		return $this->getGenericFlag(Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG);
 	}
 
 	/**
 	 * @param bool $value
 	 */
 	public function setNameTagVisible($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, $value);
+		$this->setGenericFlag(Entity::DATA_FLAG_CAN_SHOW_NAMETAG, $value);
 	}
 
 	/**
 	 * @param bool $value
 	 */
 	public function setNameTagAlwaysVisible($value = true) {
-		$this->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG, $value);
+		$this->setGenericFlag(Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG, $value);
 	}
 
 	/**
@@ -250,6 +250,67 @@ abstract class HumanNPC extends Human implements BaseNPC {
 			$entity->kill();
 		}
 		return null;
+	}
+
+	/**
+	 * Update the entity without calling all the functions with extra overhead
+	 *
+	 * ** If you want the entity to do normal entity things you'll have to override this and call the methods yourself **
+	 *
+	 * @param $currentTick
+	 *
+	 * @return bool
+	 */
+	public function onUpdate($currentTick) {
+		if($this->closed){
+			return false;
+		}
+
+		$tickDiff = max(1, $currentTick - $this->lastUpdate);
+		$this->lastUpdate = $currentTick;
+
+		$hasUpdate = $this->entityBaseTick($tickDiff);
+
+		return $hasUpdate;
+	}
+
+	/**
+	 * Update the entity without calling all the functions with extra overhead
+	 *
+	 * ** If you want the entity to do normal entity things you'll have to override this and call the methods yourself **
+	 *
+	 * @param int $tickDiff
+	 *
+	 * @return bool
+	 */
+	public function entityBaseTick($tickDiff = 1) : bool {
+		if(count($this->changedDataProperties) > 0){
+			$this->sendData($this->hasSpawned, $this->changedDataProperties);
+			$this->changedDataProperties = [];
+		}
+
+		if($this->dead === true) {
+			$this->despawnFromAll();
+			$this->close();
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Make sure updated data properties are send to players
+	 *
+	 * @param string $name
+	 * @param int $type
+	 * @param mixed $value
+	 * @param bool $send
+	 *
+	 * @return bool
+	 */
+	public function setDataProperty(string $name, int $type, $value, bool $send = true) : bool {
+		$this->scheduleUpdate();
+		return parent::setDataProperty($name, $type, $value, $send);
 	}
 
 }
