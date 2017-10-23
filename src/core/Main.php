@@ -163,12 +163,12 @@ class Main extends PluginBase {
 	 * Save all the configs and get them ready for use
 	 */
 	public function loadConfigs() {
+		$this->saveResource(self::SETTINGS_FILE);
+		$this->settings = new Config($this->getDataFolder() . self::SETTINGS_FILE, Config::YAML);
 		if(!is_dir($this->getDataFolder() . "data")) {
 			@mkdir($this->getDataFolder() . "data");
 		}
 		$this->saveResource(DefaultServerSelectionForm::SERVER_SELECTOR_DATA_FILE);
-		$this->saveResource(self::SETTINGS_FILE);
-		$this->settings = new Config($this->getDataFolder() . self::SETTINGS_FILE, Config::YAML);
 	}
 
 	/**
