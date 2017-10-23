@@ -1,0 +1,30 @@
+{
+	"&8Duel 1": {
+		"node": "DUEL",
+		"id": "1",
+		"image": "http://jacknoordhuis.net/minecraft/icons/items/276-0.png",
+		"item": "276",
+		"index": 0
+	},
+	"&8Duel 2": {
+		"node": "DUEL",
+		"id": 2,
+		"image": "http://jacknoordhuis.net/minecraft/icons/items/276-0.png",
+		"item": "276",
+		"index": 1
+	},
+	"&8Classic PvP": {
+		"node": "CPVP",
+		"id": 1,
+		"image": "http://jacknoordhuis.net/minecraft/icons/items/315-0.png",
+		"item": "315",
+		"index": 2
+	},
+	"&8Classic Prison": {
+		"node": "CPSN",
+		"id": "1",
+		"image": "http://jacknoordhuis.net/minecraft/icons/items/257-0.png",
+		"item": "257",
+		"index": 3
+	}
+}

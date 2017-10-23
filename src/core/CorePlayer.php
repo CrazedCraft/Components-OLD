@@ -159,9 +159,6 @@ class CorePlayer extends Player {
 	/** @var int */
 	private $deviceOs = -1;
 
-	/** @var array */
-	private $guis = [];
-
 	/** @var string[] */
 	private $guiCooldowns = [];
 
@@ -373,27 +370,6 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return ContainerGUI|null
-	 */
-	public function getGuiContainer(string $type = "undefined") {
-		if($this->hasGuiContainer($type)) {
-			return $this->guis[$type];
-		}
-		return null;
-	}
-
-	/**
-	 * @param string $type
-	 *
-	 * @return bool
-	 */
-	public function hasGuiContainer(string $type = "undefined") {
-		return isset($this->guis[$type]) and $this->guis[$type] instanceof ContainerGUI;
-	}
-
-	/**
 	 * @param string $id
 	 *
 	 * @return int|string
@@ -601,28 +577,20 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @param ContainerGUI $gui
-	 * @param string $type
-	 * @param bool $overwrite
-	 *
-	 * @return bool
-	 * @throws \ErrorException
-	 */
-	public function addGuiContainer(ContainerGUI $gui, string $type = "undefined", $overwrite = false) {
-		if(!$this->hasGuiContainer($type) or $overwrite) {
-			$this->guis[$type] = $gui;
-			return true;
-		}
-
-		throw new \ErrorException("Attempted to overwrite existing GUI container!");
-	}
-
-	/**
 	 * @param int $time
 	 * @param string $id
 	 */
 	public function setGuiCooldown(int $time, string $id = GUIItem::GUI_ITEM_ID) {
 		$this->guiCooldowns[$id] = $time;
+	}
+
+	/**
+	 * @param ContainerGUI $gui
+	 *
+	 * @throws \ErrorException
+	 */
+	public function openGuiContainer(ContainerGUI $gui) {
+		$this->addWindow($gui);
 	}
 
 	/**

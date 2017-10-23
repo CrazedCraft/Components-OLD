@@ -17,8 +17,12 @@
 namespace core;
 
 use core\language\LanguageUtils;
+use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\network\protocol\TileEntityDataPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -50,6 +54,16 @@ class Utils {
 		$data = explode(",", str_replace(" ", "", $string));
 		$level = Server::getInstance()->getLevelByName($data[3] ?? "");
 		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), $level ?? Server::getInstance()->getDefaultLevel());
+	}
+
+	/**
+	 * @param string $string
+	 *
+	 * @return Item
+	 */
+	public static function parseItem(string $string) {
+		$data = explode(",", str_replace(" ", "", $string));
+		return Item::get($data[0] ?? 0, $data[1] ?? 0, $data[2] ?? 1);
 	}
 
 	/**
@@ -161,6 +175,23 @@ class Utils {
 	}
 
 	/**
+	 * @param CorePlayer $player
+	 * @param Vector3 $pos
+	 * @param Compound $namedtag
+	 */
+	public static function sendTile(CorePlayer $player, Vector3 $pos, Compound $namedtag) {
+		$nbt = new NBT(NBT::LITTLE_ENDIAN);
+		$nbt->setData($namedtag);
+
+		$pk = new TileEntityDataPacket();
+		$pk->x = $pos->x;
+		$pk->y = $pos->y;
+		$pk->z = $pos->z;
+		$pk->namedtag = $nbt->write(true);
+		$player->dataPacket($pk);
+	}
+
+	/**
 	 * Sends a message to all online staff members
 	 *
 	 * @param string $message
@@ -257,6 +288,17 @@ class Utils {
 			$traceProperty->setValue($exception, $trace);
 		} while($exception = $exception->getPrevious());
 		$traceProperty->setAccessible(false);
+	}
+
+	/**
+	 * Get the contents of a JSON encoded file as an array
+	 *
+	 * @param string $path
+	 *
+	 * @return array
+	 */
+	public static function getJsonContents(string $path) : array {
+		return json_decode(file_get_contents($path), true);
 	}
 
 }

@@ -21,12 +21,14 @@ use core\database\CoreDatabaseManager;
 use core\database\request\network\UpdateNetworkServerDatabaseRequest;
 use core\entity\antihack\KillAuraDetector;
 use core\entity\text\FloatingText;
+use core\gui\GUIManager;
 use core\language\LanguageManager;
 use core\network\NetworkManager;
 use core\network\NetworkNode;
 use core\network\NetworkServer;
-use core\task\ReportErrorTask;
 use core\task\RestartTask;
+use core\ui\UIManager;
+use core\ui\windows\DefaultServerSelectionForm;
 use pocketmine\entity\Entity;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
@@ -57,6 +59,12 @@ class Main extends PluginBase {
 
 	/** @var NetworkManager */
 	private $networkManager;
+
+	/** @var UIManager */
+	private $uiManager;
+
+	/** @var GUIManager */
+	private $guiManager;
 
 	/** @var FloatingText */
 	public $floatingText = [];
@@ -103,6 +111,8 @@ class Main extends PluginBase {
 		$this->getLogger()->info("Enabling language manager...");
 		$this->setLanguageManager();
 		$this->getLogger()->info("Applying finishing touches...");
+		$this->setUiManager();
+		$this->setGuiManager();
 		$this->getServer()->getNetwork()->setName($this->languageManager->translate("SERVER_NAME", "en"));
 		$this->restartTask = new RestartTask($this);
 		$server = $this->getServer();
@@ -153,6 +163,10 @@ class Main extends PluginBase {
 	 * Save all the configs and get them ready for use
 	 */
 	public function loadConfigs() {
+		if(!is_dir($this->getDataFolder() . "data")) {
+			@mkdir($this->getDataFolder() . "data");
+		}
+		$this->saveResource(DefaultServerSelectionForm::SERVER_SELECTOR_DATA_FILE);
 		$this->saveResource(self::SETTINGS_FILE);
 		$this->settings = new Config($this->getDataFolder() . self::SETTINGS_FILE, Config::YAML);
 	}
@@ -207,6 +221,20 @@ class Main extends PluginBase {
 	}
 
 	/**
+	 * @return UIManager
+	 */
+	public function getUiManager() : UIManager {
+		return $this->uiManager;
+	}
+
+	/**
+	 * @return GUIManager
+	 */
+	public function getGuiManager() : GUIManager {
+		return $this->guiManager;
+	}
+
+	/**
 	 * Set the command map
 	 */
 	public function setCommandMap() {
@@ -239,6 +267,20 @@ class Main extends PluginBase {
 	 */
 	public function setNetworkManager() {
 		$this->networkManager = new NetworkManager($this);
+	}
+
+	/**
+	 * Set the ui manager
+	 */
+	public function setUiManager() {
+		$this->uiManager = new UIManager($this);
+	}
+
+	/**
+	 * Set the gui manager
+	 */
+	public function setGuiManager() {
+		$this->guiManager = new GUIManager($this);
 	}
 
 	/**

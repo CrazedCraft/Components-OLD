@@ -20,6 +20,7 @@ use core\database\request\auth\AuthLoginDatabaseRequest;
 use core\database\request\ban\BanCheckDatabaseRequest;
 use core\entity\text\FloatingText;
 use core\gui\container\ContainerGUI;
+use core\gui\container\defaults\ServerSelectionContainer;
 use core\gui\item\GUIItem;
 use core\language\LanguageManager;
 use core\network\NetworkNode;
@@ -140,7 +141,7 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$ips = 0;
 
-		$player->setDataProperty(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_TYPE_BYTE, 1); // make players invisible until they'tr authenticated
+		$player->setDataProperty(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_TYPE_BYTE, 1); // make players invisible until they're authenticated
 
 		/** @var CorePlayer $p */
 		foreach($this->getCore()->getServer()->getOnlinePlayers() as $p) {
