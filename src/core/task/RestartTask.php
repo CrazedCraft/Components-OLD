@@ -41,7 +41,7 @@ class RestartTask extends PluginTask {
 	}
 
 	public function onRun($tick) {
-		if($this->time > 0) {
+		if($this->time >= 0) {
 			if($this->time <= 10 and $this->time >= 1) {
 				$this->getOwner()->getServer()->broadcastTip(LanguageManager::getInstance()->translate("SECONDS_UNTIL_RESTART", "en", [$this->time]));
 			} elseif($this->time === 60) {
