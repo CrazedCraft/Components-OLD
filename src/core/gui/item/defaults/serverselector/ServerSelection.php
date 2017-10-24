@@ -83,7 +83,7 @@ class ServerSelection extends GUIItem {
 			}
 
 			if($server instanceof NetworkServer) {
-				if($server->getNetworkId() !== $currentServer->getNetworkId()) {
+				if($server->getNetworkId() !== $currentServer->getNetworkId() and $this->serverId === self::SERVER_ID_INVALID) {
 					if($server->isAvailable()) {
 						return LanguageUtils::translateColors("&7(&d{$server->getOnlinePlayers()}&0/&5{$server->getMaxPlayers()}&7)");
 					} else {
@@ -112,7 +112,7 @@ class ServerSelection extends GUIItem {
 		$currentServer = $networkManager->getServer();
 		$node = $networkManager->getMap()->findNode($this->node);
 		if($node instanceof NetworkNode) {
-			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer) {
+			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer and $this->serverId === self::SERVER_ID_INVALID) {
 				$server = $node->getSuitableServer();
 			}
 

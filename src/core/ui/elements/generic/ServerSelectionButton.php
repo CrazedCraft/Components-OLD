@@ -71,7 +71,7 @@ class ServerSelectionButton extends Button {
 		$currentServer = $networkManager->getMap()->getServer();
 		$node = $networkManager->getMap()->findNode($this->node);
 		if($node instanceof NetworkNode) {
-			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer) {
+			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer and $this->serverId === self::SERVER_ID_INVALID) {
 				$server = $node->getSuitableServer();
 			}
 
@@ -105,7 +105,7 @@ class ServerSelectionButton extends Button {
 		$currentServer = $networkManager->getServer();
 		$node = $networkManager->getMap()->findNode($this->node);
 		if($node instanceof NetworkNode) {
-			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer) {
+			if(!($server = $node->findServer($this->serverId)) instanceof NetworkServer and $this->serverId === self::SERVER_ID_INVALID) {
 				$server = $node->getSuitableServer();
 			}
 
