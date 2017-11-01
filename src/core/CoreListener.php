@@ -445,7 +445,7 @@ class CoreListener implements Listener {
 				$source->kick($this->getCore()->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));
 			}
 		} elseif($pk instanceof ContainerSetSlotPacket) {
-			$inv = $source->getWindowById($pk->windowid);
+			$inv = $source->getWindow($pk->windowid);
 			if($inv instanceof ContainerGUI) {
 				$item = $inv->getItem($pk->slot);
 				if($item instanceof GUIItem) {
