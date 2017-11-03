@@ -50,5 +50,166 @@
         }
       }
     ]
+  },
+  "party": {
+    "versions": [
+      {
+        "aliases": [
+          "p"
+        ],
+        "description": "The command to Manage your party!",
+        "permission": "any",
+        "overloads": {
+          "invite": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "invite",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "invite",
+                    "add"
+                  ]
+                },
+                {
+                  "name": "player",
+                  "type": "target"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "accept": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "accept",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "accept",
+                    "join"
+                  ]
+                },
+                {
+                  "name": "player",
+                  "type": "target"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "leave": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "leave",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "leave",
+                    "quit"
+                  ]
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "promote": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "promote",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "promote"
+                  ]
+                },
+                {
+                  "name": "player",
+                  "type": "target"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "remove": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "remove",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "remove",
+                    "kick"
+                  ]
+                },
+                {
+                  "name": "player",
+                  "type": "target"
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "disband": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "disband",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "disband"
+                  ]
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "list": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "list",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "list"
+                  ]
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          },
+          "help": {
+            "input": {
+              "parameters": [
+                {
+                  "name": "help",
+                  "type": "stringenum",
+                  "enum_values": [
+                    "help"
+                  ]
+                }
+              ]
+            },
+            "output": {
+              "parameters": []
+            }
+          }
+        }
+      }
+    ]
   }
 }
