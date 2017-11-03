@@ -803,11 +803,6 @@ class CorePlayer extends Player {
 
 			if(isset($ban)) {
 				// TODO: Cascade update sub-bans to the main ban so only the initial ban has to be updated
-				if(count($this->getBanList()->search(strtolower($this->getName()))) < 1) { // add new ban if user is banned but logged in with different name
-					$this->getBanList()->add(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), $ban->getExpiry(), $ban->getCreation(), true, $ban->getReason(), $ban->getIssuer()));
-					return; // new ban has already been added with this players data
-				}
-
 				if(count($this->getBanList()->search(null, $this->getClientId())) < 1) { // add new ban if user is banned but logged in with different cid
 					$this->getBanList()->add(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), $ban->getExpiry(), $ban->getCreation(), true, $ban->getReason(), $ban->getIssuer()));
 					return; // new ban has already been added with this players data
