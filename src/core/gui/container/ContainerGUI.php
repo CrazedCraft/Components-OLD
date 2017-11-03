@@ -31,6 +31,6 @@ interface ContainerGUI extends Inventory {
 	 *
 	 * @return mixed
 	 */
-	public function onSelect($slot, GUIItem $item, CorePlayer $player);
+	public function onSelect(int $slot, GUIItem $item, CorePlayer $player) : bool;
 
 }

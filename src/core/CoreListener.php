@@ -337,27 +337,4 @@ class CoreListener implements Listener {
 		}
 	}
 
-	/**
-	 * Intercept incoming data packet before they're handled by the server
-	 *
-	 * @param DataPacketReceiveEvent $event
-	 *
-	 * @priority MONITOR
-	 */
-	public function onDataPacketReceive(DataPacketReceiveEvent $event) {
-		/** @var CorePlayer $source */
-		$source = $event->getPlayer();
-		$pk = $event->getPacket();
-		if($pk instanceof ContainerSetSlotPacket) {
-			$inv = $source->getWindow($pk->windowid);
-			if($inv instanceof ContainerGUI) {
-				$item = $inv->getItem($pk->slot);
-				if($item instanceof GUIItem) {
-					$inv->onSelect($pk->slot, $item, $source);
-					$event->setCancelled(true);
-				}
-			}
-		}
-	}
-
 }

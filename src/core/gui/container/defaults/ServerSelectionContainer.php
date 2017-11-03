@@ -60,7 +60,7 @@ class ServerSelectionContainer extends ChestGUI {
 		parent::onOpen($who);
 	}
 
-	public function onSelect($slot, GUIItem $item, CorePlayer $player) {
+	public function onSelect(int $slot, GUIItem $item, CorePlayer $player) : bool {
 		$player->removeWindow($this);
 
 		$item->onClick($player);

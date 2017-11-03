@@ -97,7 +97,24 @@ abstract class ChestGUI extends ContainerInventory implements ContainerGUI {
 		//parent::onClose($who);
 	}
 
-	public function onSelect($slot, GUIItem $item, CorePlayer $player) {
+	/**
+	 * Handle the slot change
+	 *
+	 * @param Player $player
+	 * @param int $slot
+	 *
+	 * @return bool
+	 */
+	public function processSlotChange(Player $player, int $slot) : bool {
+		$item = $this->getItem($slot);
+		if($item instanceof GUIItem and $player instanceof CorePlayer) {
+			return $this->onSelect($slot, $item, $player);
+		}
+
+		return true;
+	}
+
+	public function onSelect(int $slot, GUIItem $item, CorePlayer $player) : bool {
 		return false;
 	}
 
