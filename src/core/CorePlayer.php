@@ -162,9 +162,6 @@ class CorePlayer extends Player {
 	/** @var string[] */
 	private $guiCooldowns = [];
 
-	/** @var array */
-	public $commandData = [];
-
 	/** @var int */
 	private $pingChances = 0;
 
