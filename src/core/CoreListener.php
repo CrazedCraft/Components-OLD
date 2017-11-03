@@ -148,7 +148,7 @@ class CoreListener implements Listener {
 			$p->hidePlayer($player);
 			if(!$p->isAuthenticated())
 				$player->hidePlayer($p);
-			if($p->getName() === $player->getName()) {
+			if(strtolower($p->getName()) === strtolower($player->getName())) {
 				if($p->getAddress() === $player->getAddress()) {
 					$event->setKickMessage(LanguageManager::getInstance()->translate("LOGIN_FROM_ANOTHER_LOCATION", "en"));
 					$event->setCancelled(true);
