@@ -348,9 +348,7 @@ class CoreListener implements Listener {
 		/** @var CorePlayer $source */
 		$source = $event->getPlayer();
 		$pk = $event->getPacket();
-		if($pk instanceof LoginPacket) { // Intercept the client OS info
-			$source->setDeviceOs($pk->osType);
-		} elseif($pk instanceof AdventureSettingsPacket) {
+		if($pk instanceof AdventureSettingsPacket) {
 			if(($source->isSurvival() or $source->isAdventure()) and ($pk->flags >> 9) & 0x01 === 1 or !$source->isSpectator() && ($pk->flags >> 7) & 0x01 === 1) {
 				$event->setCancelled(true);
 				$source->kick($this->getCore()->getLanguageManager()->translateForPlayer($source, "KICK_BANNED_MOD", ["Fly"]));

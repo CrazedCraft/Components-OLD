@@ -156,9 +156,6 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $showPlayers = true;
 
-	/** @var int */
-	private $deviceOs = -1;
-
 	/** @var string[] */
 	private $guiCooldowns = [];
 
@@ -395,13 +392,6 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @return int
-	 */
-	public function getDeviceOs() {
-		return $this->deviceOs;
-	}
-
-	/**
 	 * Get a string representation of the players device operating system
 	 *
 	 * @return string
@@ -588,13 +578,6 @@ class CorePlayer extends Player {
 	 */
 	public function openGuiContainer(ContainerGUI $gui) {
 		$this->addWindow($gui);
-	}
-
-	/**
-	 * @param int $os
-	 */
-	public function setDeviceOs(int $os) {
-		$this->deviceOs = $os;
 	}
 
 	/**
