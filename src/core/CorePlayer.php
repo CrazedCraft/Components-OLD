@@ -46,6 +46,7 @@ use pocketmine\network\protocol\AvailableCommandsPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
 use pocketmine\utils\PluginException;
+use pocketmine\utils\TextFormat;
 
 class CorePlayer extends Player {
 
@@ -949,6 +950,18 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * Do the callback for the message check task
+	 *
+	 * @param string $message
+	 */
+	public function messageCheckCallback(string $message) {
+		$message = TextFormat::LIGHT_PURPLE . $this->getName() . TextFormat::GOLD . ": " . TextFormat::GRAY . TextFormat::clean($message);
+		foreach($this->getServer()->getOnlinePlayers() as $p) {
+			$p->sendMessage($message);
+		}
+	}
+
+	/**
 	 * @param PlayerChatEvent $event
 	 */
 	public function onChat(PlayerChatEvent $event) {
@@ -995,7 +1008,7 @@ class CorePlayer extends Player {
 	 * @param PlayerInteractEvent $event
 	 */
 	public function onInteract(PlayerInteractEvent $event) {
-		if($this->authenticated and !$event->isCancelled()) {
+		if($this->isAuthenticated()) {
 			$item = $this->getInventory()->getItemInHand();
 			if($item instanceof GUIItem) {
 				$item->handleClick($this, true);

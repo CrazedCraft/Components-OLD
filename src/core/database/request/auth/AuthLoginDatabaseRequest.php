@@ -23,6 +23,7 @@ use core\database\result\MysqlDatabaseResult;
 use core\database\result\MysqlDatabaseSelectResult;
 use core\language\LanguageUtils;
 use core\Main;
+use core\Utils;
 
 /**
  * Class for handling the fetching of users auth information
@@ -67,7 +68,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 		$player = $server->getPlayerExact($this->username);
 		if($player instanceof CorePlayer) {
 			if($result instanceof MysqlDatabaseSelectResult) { // map the database data to the player and let them know they can login
-				$player->sendTranslatedMessage("WELCOME", [], true, false);
+				$player->sendTranslatedMessage("WELCOME", [$player->getName()], true, Utils::$centerWelcome);
 				if(count($result->rows) === 0) { // user isn't registered
 					$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
 				} else { // user is registered

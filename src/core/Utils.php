@@ -33,6 +33,8 @@ class Utils {
 	const PREFIX = TF::BOLD . TF::GOLD . "CC" . TF::RESET . TF::YELLOW . "> " . TF::RESET;
 	const STAFF_PREFIX = TF::GRAY . "[" . TF::AQUA . "STAFF" . TF::GRAY . "] " . TF::RESET;
 
+	public static $centerWelcome = false;
+
 	/**
 	 * Get a vector instance from a string
 	 *

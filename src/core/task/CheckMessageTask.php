@@ -88,10 +88,7 @@ class CheckMessageTask extends AsyncTask {
 				$result = $this->getResult();
 				switch($result) {
 					case self::SUCCESS:
-						$message = TextFormat::LIGHT_PURPLE . $this->name . TextFormat::GOLD . ": " . TextFormat::GRAY . TextFormat::clean($this->message);
-						foreach($server->getOnlinePlayers() as $p) {
-							$p->sendMessage($message);
-						}
+						$player->messageCheckCallback($this->message);
 						$player->setLastMessage($this->message);
 						return;
 					case self::MESSAGES_SIMILAR:
