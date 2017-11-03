@@ -194,6 +194,8 @@ class CoreListener implements Listener {
 	 * Handle player chatting
 	 *
 	 * @param PlayerChatEvent $event
+	 *
+	 * @priority HIGHEST
 	 */
 	public function onChat(PlayerChatEvent $event) {
 		$player = $event->getPlayer();
