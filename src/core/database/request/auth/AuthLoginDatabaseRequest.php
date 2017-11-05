@@ -71,6 +71,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 				$player->sendTranslatedMessage("WELCOME", [$player->getName()], true, Utils::$centerWelcome);
 				if(count($result->rows) === 0) { // user isn't registered
 					$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
+					$player->afterAuthCheck();
 				} else { // user is registered
 					$result->fixTypes([
 						"hash" => MysqlDatabaseSelectResult::TYPE_STRING,
@@ -85,6 +86,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 					$row = $result->rows[0];
 					if(($hash = $row["hash"]) === "" or $hash === null) { // user hasn't registered properly
 						$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
+						$player->afterAuthCheck();
 						return;
 					}
 					$player->setRegistered(true);
@@ -100,6 +102,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 					} else {
 						$player->sendTranslatedMessage("LOGIN_PROMPT", [], true);
 					}
+					$player->afterAuthCheck();
 				}
 
 				$plugin->getLogger()->debug("Successfully completed login request for user {$this->username}");

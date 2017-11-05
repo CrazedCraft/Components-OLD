@@ -447,6 +447,12 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * Actions to execute after auth check
+	 */
+	public function afterAuthCheck() {
+	}
+
+	/**
 	 * @param string $ip
 	 */
 	public function setLastIp(string $ip) {
