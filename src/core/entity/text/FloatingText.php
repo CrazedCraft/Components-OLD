@@ -83,7 +83,7 @@ class FloatingText {
 	 */
 	public function spawnTo(Player $player) {
 		if($player !== $this and !isset($this->hasSpawned[$player->getId()])) {
-			$this->hasSpawned[$player->getId()] = $player;
+			$this->hasSpawned[$player->getId()] = true;
 
 			$pk = new AddPlayerPacket();
 			$pk->eid = $this->eid;
@@ -91,14 +91,10 @@ class FloatingText {
 			$pk->x = $this->pos->x;
 			$pk->y = $this->pos->y + 0.15;
 			$pk->z = $this->pos->z;
-			$pk->speedX = 0;
-			$pk->speedY = 0;
-			$pk->speedZ = 0;
 			$pk->yaw = 0;
 			$pk->pitch = 0;
-			$pk->item = Item::get(0);
 			$pk->metadata = [
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_CAN_SHOW_NAMETAG, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG]],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_CAN_SHOW_NAMETAG => true, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG => true, Entity::DATA_FLAG_IMMOBILE => true]],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->text],
 				Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],

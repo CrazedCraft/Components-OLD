@@ -43,6 +43,7 @@ use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\network\protocol\AvailableCommandsPacket;
+use pocketmine\network\protocol\LevelEventPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
 use pocketmine\utils\PluginException;
@@ -81,6 +82,9 @@ class CorePlayer extends Player {
 
 	/** @var Main */
 	private $core;
+
+	/** @var bool */
+	private $authCheckCompleted = false;
 
 	/** @var bool */
 	private $registered = false;
@@ -163,6 +167,12 @@ class CorePlayer extends Player {
 	/** @var int */
 	private $pingChances = 0;
 
+	/** @var bool */
+	private $sentLoginTitle = false;
+
+	/** @var bool */
+	private $joined = false;
+
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
 	const STATE_PLAYING = "state.playing";
@@ -208,6 +218,13 @@ class CorePlayer extends Player {
 		parent::initEntity();
 
 		$this->banList = new BanList($this);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function hasAuthCheckCompleted() : bool {
+		return $this->authCheckCompleted;
 	}
 
 	/**
@@ -393,6 +410,20 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function hasSentLoginTitle() : bool {
+		return $this->sentLoginTitle;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function hasJoined() : bool {
+		return $this->joined;
+	}
+
+	/**
 	 * Get a string representation of the players device operating system
 	 *
 	 * @return string
@@ -425,6 +456,17 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @param bool $value
+	 */
+	public function setAuthCheckCompleted(bool $value = true) {
+		$this->authCheckCompleted = $value;
+
+		if($value) {
+			$this->afterAuthCheck();
+		}
+	}
+
+	/**
 	 * @param $value
 	 */
 	public function setRegistered($value = true) {
@@ -444,12 +486,6 @@ class CorePlayer extends Player {
 		}
 		$this->spawnKillAuraDetectors();
 		$this->doGeneralUpdate();
-	}
-
-	/**
-	 * Actions to execute after auth check
-	 */
-	public function afterAuthCheck() {
 	}
 
 	/**
@@ -585,6 +621,20 @@ class CorePlayer extends Player {
 	 */
 	public function openGuiContainer(ContainerGUI $gui) {
 		$this->addWindow($gui);
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public function setHasSentLoginTitle(bool $value = true) {
+		$this->sentLoginTitle = $value;
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public function setHasJoined(bool $value = true) {
+		$this->joined = $value;
 	}
 
 	/**
@@ -736,6 +786,34 @@ class CorePlayer extends Player {
 
 			$this->checkFlyTriggers();
 		//}
+	}
+
+	/**
+	 * Actions to execute after auth check
+	 */
+	public function afterAuthCheck() {
+		if(!$this->hasSentLoginTitle() and $this->hasJoined()) {
+			$this->sendLoginTitle();
+		}
+	}
+
+	/**
+	 * Send the join title to the player
+	 */
+	public function sendLoginTitle() {
+		$this->setHasSentLoginTitle(true);
+
+		$subtitleKey = ($this->isAuthenticated() ? "WELCOME_SUBTITLE" : ($this->isRegistered() ? "WELCOME_LOGIN_SUBTITLE" : "WELCOME_REGISTER_SUBTITLE"));
+
+		$this->addTitle($this->getCore()->getLanguageManager()->translateForPlayer($this, "WELCOME_TITLE", [], false), $this->getCore()->getLanguageManager()->translateForPlayer($this, $subtitleKey, [], false), 10, 100, 10);
+
+		$pk = new LevelEventPacket();
+		$pk->x = $this->x;
+		$pk->y = $this->y;
+		$pk->z = $this->z;
+		$pk->evid = LevelEventPacket::EVENT_GUARDIAN_CURSE;
+		$pk->data = 0;
+		$this->dataPacket($pk);
 	}
 
 	public function handleAuth(string $message) {

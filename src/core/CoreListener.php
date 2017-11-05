@@ -188,6 +188,12 @@ class CoreListener implements Listener {
 			if($text instanceof FloatingText)
 				$text->spawnTo($player);
 		}
+
+		if($player->hasAuthCheckCompleted() and !$player->hasSentLoginTitle()) {
+			$player->sendLoginTitle();
+		}
+
+		$player->setHasJoined(true);
 	}
 
 	/**
