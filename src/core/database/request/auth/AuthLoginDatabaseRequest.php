@@ -68,7 +68,7 @@ class AuthLoginDatabaseRequest extends MySQLDatabaseRequest {
 		$player = $server->getPlayerExact($this->username);
 		if($player instanceof CorePlayer) {
 			if($result instanceof MysqlDatabaseSelectResult) { // map the database data to the player and let them know they can login
-				$player->sendTranslatedMessage("WELCOME", [$player->getName()], true, Utils::$centerWelcome);
+				$player->sendTranslatedMessage("WELCOME", [$player->getName()], true, true);
 				if(count($result->rows) === 0) { // user isn't registered
 					$player->sendTranslatedMessage("REGISTER_PROMPT", [], true);
 					$player->setAuthCheckCompleted(true);

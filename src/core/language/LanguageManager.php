@@ -132,11 +132,18 @@ class LanguageManager {
 	private function loadMessages() {
 		$plugin = $this->getCore();
 		$path = $this->path . self::MESSAGES_PATH;
-		if(!is_dir($path)) @mkdir($path);
+		if(!is_dir($path)) {
+			@mkdir($path);
+		}
+
 		foreach(self::$messageLangs as $lang => $filename) {
 			$plugin->saveResource(self::BASE_LANGUAGE_DIRECTORY . self::MESSAGES_PATH . $filename);
 			$file = $path . $filename;
-			$this->registerLanguage($lang, (new Config($file, Config::JSON))->getAll());
+			if(!is_file($file)) {
+				$plugin->getLogger()->warning("Couldn't find language file for '{$lang}'! Path: {$file}");
+			} else {
+				$this->registerLanguage($lang, (new Config($file, Config::JSON))->getAll());
+			}
 		}
 	}
 
