@@ -792,9 +792,6 @@ class CorePlayer extends Player {
 	 * Actions to execute after auth check
 	 */
 	public function afterAuthCheck() {
-		if(!$this->hasSentLoginTitle() and $this->hasJoined()) {
-			$this->sendLoginTitle();
-		}
 	}
 
 	/**

@@ -25,6 +25,7 @@ use core\gui\item\GUIItem;
 use core\language\LanguageManager;
 use core\network\NetworkNode;
 use core\network\NetworkServer;
+use core\task\DisplayLoginTitleTask;
 use core\util\traits\CorePluginReference;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
@@ -189,9 +190,7 @@ class CoreListener implements Listener {
 				$text->spawnTo($player);
 		}
 
-		if($player->hasAuthCheckCompleted() and !$player->hasSentLoginTitle()) {
-			$player->sendLoginTitle();
-		}
+		new DisplayLoginTitleTask($this->getCore(), $player);
 
 		$player->setHasJoined(true);
 	}
