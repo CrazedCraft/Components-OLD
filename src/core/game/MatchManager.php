@@ -23,9 +23,6 @@ class MatchManager {
 
 	use CorePluginReference;
 
-	///** @var TimingsHandler */
-	//private $timings;
-
 	/** @var MatchHeartbeat */
 	private $heartbeat;
 
@@ -37,16 +34,8 @@ class MatchManager {
 
 	public function __construct(Main $plugin) {
 		$this->setCore($plugin);
-		//$this->timings = new TimingsHandler("Match Manager");
 		$this->heartbeat = new MatchHeartbeat($this);
 	}
-
-	///**
-	// * @return TimingsHandler
-	// */
-	//public function getTimingsHandler() {
-	//	return $this->timings;
-	//}
 
 	/**
 	 * @return MatchHeartbeat
@@ -93,20 +82,19 @@ class MatchManager {
 	 */
 	public function tick($currentTick) {
 		$tickDiff = $currentTick - $this->lastTick;
-		//$this->timings->startTiming();
 		foreach($this->matches as $key => $match) {
 			if($match instanceof Match) {
 				if($match->isActive()) {
 					$match->tick($currentTick);
 				} else {
-					$match->close();
-					unset($this->matches[$key]);
+					$this->removeMatch($key);
 				}
 			} else {
 				unset($this->matches[$key]);
+				throw new \RuntimeException("Tried to tick invalid match!");
 			}
 		}
-		//$this->timings->stopTiming();
+
 		$this->getCore()->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
 		$this->lastTick = $currentTick;
 	}
