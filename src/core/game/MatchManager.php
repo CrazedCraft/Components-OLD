@@ -30,7 +30,7 @@ class MatchManager {
 	private $lastTick = 0;
 
 	/** @var Match[] */
-	private $matches = [];
+	protected $matches = [];
 
 	public function __construct(Main $plugin) {
 		$this->setCore($plugin);

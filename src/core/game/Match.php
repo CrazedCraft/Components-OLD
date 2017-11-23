@@ -22,7 +22,7 @@ use core\Utils;
 class Match {
 
 	/** @var MatchManager */
-	private $manager;
+	protected $manager;
 
 	/** @var string */
 	private $id = null;
