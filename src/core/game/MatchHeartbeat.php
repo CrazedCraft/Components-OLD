@@ -23,9 +23,11 @@ class MatchHeartbeat extends PluginTask {
 	/** @var MatchManager */
 	private $manager;
 
-	public function __construct(MatchManager $manager) {
+	public function __construct(MatchManager $manager, int $ticks = 20) {
 		$this->manager = $manager;
 		parent::__construct($manager->getCore());
+
+		$manager->getCore()->getServer()->getScheduler()->scheduleRepeatingTask($this, $ticks);
 	}
 
 	/**

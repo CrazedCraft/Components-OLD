@@ -1,7 +1,7 @@
 <component name="CopyrightManager">
   <copyright>
     <option name="allowReplaceRegexp" value="Copyright" />
-    <option name="notice" value="## Detect user and set author name accordingly&#10;#if ( &amp;#36;username == 'Jack' )&#10;    #set (&amp;#36;username = 'Jack Noordhuiss')&#10;#end&#10;&amp;#36;{file.fileName} – &amp;#36;{project.name}&#10;&#10;Copyright (C) 2015-&amp;#36;{today.year} Jack Noordhuis&#10;&#10;This is private software, you cannot redistribute and/or modify it in any way&#10;unless given explicit permission to do so. If you have not been given explicit&#10;permission to view or modify this software you should take the appropriate actions&#10;to remove this software from your device immediately.&#10;&#10;@author Jack Noordhuis&#10;" />
+    <option name="notice" value="## Detect user and set author name accordingly&#10;#if ( &amp;#36;username == 'Jack' )&#10;    #set (&amp;#36;username = 'Jack Noordhuis')&#10;#end&#10;&amp;#36;{file.fileName} – &amp;#36;{project.name}&#10;&#10;Copyright (C) 2015-&amp;#36;{today.year} Jack Noordhuis&#10;&#10;This is private software, you cannot redistribute and/or modify it in any way&#10;unless given explicit permission to do so. If you have not been given explicit&#10;permission to view or modify this software you should take the appropriate actions&#10;to remove this software from your device immediately.&#10;&#10;@author Jack Noordhuis&#10;" />
     <option name="myName" value="Private software" />
   </copyright>
 </component>
