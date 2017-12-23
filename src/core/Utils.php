@@ -33,6 +33,9 @@ class Utils {
 	const PREFIX = TF::BOLD . TF::GOLD . "CC" . TF::RESET . TF::YELLOW . "> " . TF::RESET;
 	const STAFF_PREFIX = TF::GRAY . "[" . TF::AQUA . "STAFF" . TF::GRAY . "] " . TF::RESET;
 
+	/** @var CorePlayer[] */
+	protected static $playerLookup = [];
+
 	/**
 	 * Get a vector instance from a string
 	 *
@@ -52,8 +55,16 @@ class Utils {
 	 */
 	public static function parsePosition(string $string) {
 		$data = explode(",", str_replace(" ", "", $string));
-		$level = Server::getInstance()->getLevelByName($data[3] ?? "");
-		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), $level ?? Server::getInstance()->getDefaultLevel());
+		return new Position(floatval($data[0]), floatval($data[1]), floatval($data[2]), self::parseLevel($data[3] ?? ""));
+	}
+
+	/**
+	 * @param string $level
+	 *
+	 * @return \pocketmine\level\Level
+	 */
+	public static function parseLevel(string $level) {
+		return Server::getInstance()->getLevelByName($level) ?? Server::getInstance()->getDefaultLevel();
 	}
 
 	/**
@@ -143,6 +154,37 @@ class Utils {
 		$sec = (int) gmdate("s", $time);
 		return rtrim(($min > 0 ? $min . "minute" . ($min == 1 ? "," : "s,") : "") . ($sec > 0 ? $sec . " second" . ($sec == 1 ? "" : "") : ""), ",");
 
+	}
+
+	/**
+	 * Add a player to the uuid lookup
+	 *
+	 * @param CorePlayer $player
+	 */
+	public static function addToUuidLookup(CorePlayer $player) {
+		static::$playerLookup[$player->getUniqueId()->toString()] = $player;
+	}
+
+	/**
+	 * @param string $uuid
+	 *
+	 * @return CorePlayer|null
+	 */
+	public static function lookupUuid(string $uuid) : ?CorePlayer {
+		return static::$playerLookup[$uuid] ?? null;
+	}
+
+	/**
+	 * Remove a player from the uuid lookup
+	 *
+	 * @param CorePlayer|string $player
+	 */
+	public static function removeFromUuidLookup($player) {
+		if($player instanceof CorePlayer) {
+			$player = $player->getUniqueId()->toString();
+		}
+
+		unset(static::$playerLookup[$player]);
 	}
 
 	/**
@@ -291,14 +333,15 @@ class Utils {
 	}
 
 	/**
-	 * Get the contents of a JSON encoded file as an array
+	 * Get the contents of a JSON encoded file as an array or \stdClass
 	 *
 	 * @param string $path
+	 * @param bool $assoc
 	 *
-	 * @return array
+	 * @return array|\stdClass
 	 */
-	public static function getJsonContents(string $path) : array {
-		return json_decode(file_get_contents($path), true);
+	public static function getJsonContents(string $path, $assoc = true) {
+		return json_decode(file_get_contents($path), $assoc);
 	}
 
 }

@@ -183,6 +183,9 @@ class CoreListener implements Listener {
 	public function onJoin(PlayerJoinEvent $event) {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
+
+		Utils::addToUuidLookup($player);
+
 		$player->sendCommandData();
 		$player->setNameTag(Utils::translateColors("&e" . $player->getName()));
 		foreach($this->getCore()->floatingText as $text) {
@@ -324,6 +327,9 @@ class CoreListener implements Listener {
 	public function onQuit(PlayerQuitEvent $event) {
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
+
+		Utils::removeFromUuidLookup($player);
+
 		$event->setQuitMessage("");
 		if($player->isAuthenticated())
 			$player->doGeneralUpdate();
