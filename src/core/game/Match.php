@@ -207,7 +207,7 @@ abstract class Match {
 	 * @return CorePlayer[]
 	 */
 	final public function getSpectatorsExcept(array $exclude) : array {
-		$gameSpectators = $this->players; // spectators currently spectating
+		$gameSpectators = $this->spectators; // spectators currently spectating
 		foreach($exclude as $p) {
 			unset($gameSpectators[$p->getName()]); // remove player from spectators in game if in array to be excluded
 		}
