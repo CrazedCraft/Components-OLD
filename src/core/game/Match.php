@@ -117,6 +117,29 @@ abstract class Match {
 	}
 
 	/**
+	 * Get the number of players in the match
+	 *
+	 * @return int
+	 */
+	public function getPlayerCount() : int {
+		return count($this->players);
+	}
+
+	/**
+	 * Get an array of players in the match
+	 *
+	 * @return CorePlayer[]
+	 */
+	public function getPlayers() : array {
+		$players = $this->players;
+		foreach($players as $name => $uuid) {
+			$players[$name] = Utils::getPlayerByUUID($uuid);
+		}
+
+		return $players;
+	}
+
+	/**
 	 * Get all players excluding the players in the array
 	 *
 	 * @param CorePlayer[] $exclude
@@ -197,6 +220,29 @@ abstract class Match {
 		if(!isset($this->spectators[$name])) {
 			$this->spectators[$name] = $player->getUniqueId()->toString();
 		}
+	}
+
+	/**
+	 * Get the number of spectators in the match
+	 *
+	 * @return int
+	 */
+	public function getSpectatorCount() : int {
+		return count($this->spectators);
+	}
+
+	/**
+	 * Get an array of players spectating the match
+	 *
+	 * @return CorePlayer[]
+	 */
+	public function getSpectators() : array {
+		$spectators = $this->spectators;
+		foreach($spectators as $name => $uuid) {
+			$spectators[$name] = Utils::getPlayerByUUID($uuid);
+		}
+
+		return $spectators;
 	}
 
 	/**
