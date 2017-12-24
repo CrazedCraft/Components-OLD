@@ -188,17 +188,22 @@ class Utils {
 	}
 
 	/**
-	 * @param $uuid
+	 * @param string $uuid
 	 *
-	 * @return null|CorePlayer|Player
+	 * @return CorePlayer|null
 	 */
-	public static function getPlayerByUUID($uuid) {
-		$uuid = str_replace("-", "", strtolower($uuid));
+	public static function getPlayerByUUID(string $uuid) : ?CorePlayer {
+		if(($player = self::lookupUuid($uuid)) instanceof CorePlayer) {
+			return $player;
+		}
+
+		/** @var CorePlayer $player */
 		foreach(Server::getInstance()->getOnlinePlayers() as $player) {
-			if(str_replace("-", "", strtolower($player->getUniqueId()->toString())) == $uuid) {
+			if($player->getUniqueId()->toString() === $uuid) {
 				return $player;
 			}
 		}
+
 		return null;
 	}
 
