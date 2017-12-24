@@ -19,7 +19,7 @@ namespace core\game;
 use core\CorePlayer;
 use core\Utils;
 
-class Match {
+abstract class Match {
 
 	/** @var MatchManager */
 	protected $manager;
@@ -57,21 +57,21 @@ class Match {
 	/**
 	 * @return string
 	 */
-	public function getId() : string {
+	final public function getId() : string {
 		return $this->id;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isActive() : bool {
+	final public function isActive() : bool {
 		return $this->active;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getLastTick() : int {
+	final public function getLastTick() : int {
 		return $this->lastTick;
 	}
 
@@ -82,7 +82,7 @@ class Match {
 	 *
 	 * @return bool
 	 */
-	public function inMatchAsPlayerByPlayer(CorePlayer $player) : bool {
+	final public function inMatchAsPlayerByPlayer(CorePlayer $player) : bool {
 		return isset($this->players[$player->getName()]) and $player->getUniqueId()->toString() === $this->players[$player->getName()];
 	}
 
@@ -94,7 +94,7 @@ class Match {
 	 *
 	 * @return bool
 	 */
-	public function inMatchAsPlayerByName(string $name, bool $findPlayer = false) : bool {
+	final public function inMatchAsPlayerByName(string $name, bool $findPlayer = false) : bool {
 		if($findPlayer) {
 			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
@@ -109,7 +109,7 @@ class Match {
 	 *
 	 * @param CorePlayer $player
 	 */
-	public function addPlayer(CorePlayer $player) : void {
+	final public function addPlayer(CorePlayer $player) : void {
 		$name = $player->getName();
 		if(!isset($this->players[$name])) {
 			$this->players[$name] = $player->getUniqueId()->toString();
@@ -121,7 +121,7 @@ class Match {
 	 *
 	 * @param CorePlayer $player
 	 */
-	public function removePlayerByPlayer(CorePlayer $player) : void {
+	final public function removePlayerByPlayer(CorePlayer $player) : void {
 		if($this->inMatchAsPlayerByPlayer($player)) {
 			unset($this->players[$player->getName()]);
 		}
@@ -132,7 +132,7 @@ class Match {
 	 *
 	 * @param string $name
 	 */
-	public function removePlayerByName(string $name) : void {
+	final public function removePlayerByName(string $name) : void {
 		if($this->inMatchAsPlayerByName($name, false)) {
 			unset($this->players[$name]);
 		}
@@ -145,7 +145,7 @@ class Match {
 	 *
 	 * @return bool
 	 */
-	public function inMatchAsSpectatorByPlayer(CorePlayer $player) : bool {
+	final public function inMatchAsSpectatorByPlayer(CorePlayer $player) : bool {
 		return isset($this->spectators[$player->getName()]) and $player->getUniqueId()->toString() === $this->spectators[$player->getName()];
 	}
 
@@ -157,7 +157,7 @@ class Match {
 	 *
 	 * @return bool
 	 */
-	public function inMatchAsSpectatorByName(string $name, bool $findPlayer = false) : bool {
+	final public function inMatchAsSpectatorByName(string $name, bool $findPlayer = false) : bool {
 		if($findPlayer) {
 			$target = $this->manager->getCore()->getServer()->getPlayerExact($name);
 			if($target instanceof CorePlayer and $target->isOnline()) {
@@ -172,7 +172,7 @@ class Match {
 	 *
 	 * @param CorePlayer $player
 	 */
-	public function addSpectator(CorePlayer $player) : void {
+	final public function addSpectator(CorePlayer $player) : void {
 		$name = $player->getName();
 		if(!isset($this->spectators[$name])) {
 			$this->spectators[$name] = $player->getUniqueId()->toString();
@@ -184,7 +184,7 @@ class Match {
 	 *
 	 * @param CorePlayer $player
 	 */
-	public function removeSpectatorByPlayer(CorePlayer $player) : void {
+	final public function removeSpectatorByPlayer(CorePlayer $player) : void {
 		if($this->inMatchAsSpectatorByPlayer($player)) {
 			unset($this->spectators[$player->getName()]);
 		}
@@ -195,7 +195,7 @@ class Match {
 	 *
 	 * @param string $name
 	 */
-	public function removeSpectatorByName(string $name) : void {
+	final public function removeSpectatorByName(string $name) : void {
 		if($this->inMatchAsSpectatorByName($name, false)) {
 			unset($this->spectators[$name]);
 		}
@@ -206,7 +206,7 @@ class Match {
 	 *
 	 * @param string $message
 	 */
-	public function broadcastMessage(string $message) : void {
+	final public function broadcastMessage(string $message) : void {
 		foreach(array_merge($this->players, $this->spectators) as $name => $uuid) {
 			$player = Utils::lookupUuid($uuid);
 			if($player instanceof CorePlayer and $player->isOnline()) {
@@ -220,7 +220,7 @@ class Match {
 	 *
 	 * @param string $message
 	 */
-	public function broadcastPopup(string $message) : void {
+	final public function broadcastPopup(string $message) : void {
 		foreach(array_merge($this->players, $this->spectators) as $name => $uuid) {
 			$player = Utils::lookupUuid($uuid);
 			if($player instanceof CorePlayer and $player->isOnline()) {
@@ -234,7 +234,7 @@ class Match {
 	 *
 	 * @param string $message
 	 */
-	public function broadcastTip(string $message) : void {
+	final public function broadcastTip(string $message) : void {
 		foreach(array_merge($this->players, $this->spectators) as $name => $uuid) {
 			$player = Utils::lookupUuid($uuid);
 			if($player instanceof CorePlayer and $player->isOnline()) {
@@ -252,7 +252,7 @@ class Match {
 	 * @param int $stay
 	 * @param int $fadeOut
 	 */
-	public function broadcastTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void {
+	final public function broadcastTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void {
 		foreach(array_merge($this->players, $this->spectators) as $name => $uuid) {
 			$player = Utils::lookupUuid($uuid);
 			if($player instanceof CorePlayer and $player->isOnline()) {
@@ -278,7 +278,7 @@ class Match {
 	 * @param string[] $removedPlayers     An array of player names who were removed
 	 * @param string[] $removedSpectators  An array of spectator names who were removed
 	 */
-	protected function checkPlayers(array &$removedPlayers = [], array &$removedSpectators = []) : void {
+	final protected function checkPlayers(array &$removedPlayers = [], array &$removedSpectators = []) : void {
 		foreach($this->players as $name => $uuid) {
 			$player = Utils::lookupUuid($uuid);
 			if(!($player instanceof CorePlayer) and !$player->isOnline()) {
@@ -301,7 +301,7 @@ class Match {
 	 *
 	 * @return bool
 	 */
-	public function closed() : bool {
+	final public function closed() : bool {
 		return $this->closed;
 	}
 

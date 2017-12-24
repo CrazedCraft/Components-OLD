@@ -18,7 +18,7 @@ namespace core\game;
 
 use core\util\CoreTask;
 
-class MatchHeartbeat extends CoreTask {
+final class MatchHeartbeat extends CoreTask {
 
 	/** @var MatchManager */
 	private $manager;

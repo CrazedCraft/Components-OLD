@@ -19,7 +19,7 @@ namespace core\game;
 use core\Main;
 use core\util\traits\CorePluginReference;
 
-class MatchManager {
+abstract class MatchManager {
 
 	use CorePluginReference;
 
