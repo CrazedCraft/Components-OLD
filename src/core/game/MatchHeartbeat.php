@@ -16,9 +16,9 @@
 
 namespace core\game;
 
-use pocketmine\scheduler\PluginTask;
+use core\util\CoreTask;
 
-class MatchHeartbeat extends PluginTask {
+class MatchHeartbeat extends CoreTask {
 
 	/** @var MatchManager */
 	private $manager;
@@ -44,6 +44,13 @@ class MatchHeartbeat extends PluginTask {
 	 */
 	public function onRun($currentTick) {
 		$this->manager->tick($currentTick);
+	}
+
+	/**
+	 * Safely cancel the task
+	 */
+	public function onCancel() {
+		unset($this->manager);
 	}
 
 }

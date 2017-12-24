@@ -29,9 +29,9 @@ trait CorePluginReference {
 	/**
 	 * Set the reference to the core's main class
 	 *
-	 * @param Main $plugin
+	 * @param Main|null $plugin
 	 */
-	protected function setCore(Main $plugin) {
+	protected function setCore(?Main $plugin) {
 		$this->core = $plugin;
 	}
 
@@ -40,7 +40,7 @@ trait CorePluginReference {
 	 *
 	 * @return Main
 	 */
-	public function getCore() {
+	public function getCore() : Main {
 		return $this->core;
 	}
 

@@ -32,22 +32,29 @@ class MatchManager {
 	/** @var Match[] */
 	protected $matches = [];
 
+	/** @var bool */
+	private $justCreated = true;
+
+	/** @var bool */
+	private $closed = false;
+
 	public function __construct(Main $plugin) {
 		$this->setCore($plugin);
+
 		$this->heartbeat = new MatchHeartbeat($this);
 	}
 
 	/**
 	 * @return MatchHeartbeat
 	 */
-	public function getHeartbeat() {
+	public function getHeartbeat() : MatchHeartbeat {
 		return $this->heartbeat;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getLastTick() {
+	public function getLastTick() : int {
 		return $this->lastTick;
 	}
 
@@ -56,21 +63,21 @@ class MatchManager {
 	 *
 	 * @return Match|null
 	 */
-	public function getMatch($id) {
+	public function getMatch(string $id) : ?Match {
 		return $this->matches[$id] ?? null;
 	}
 
 	/**
 	 * @param Match $match
 	 */
-	public function addMatch(Match $match) {
+	public function addMatch(Match $match) : void {
 		$this->matches[$match->getId()] = $match;
 	}
 
 	/**
 	 * @param $id
 	 */
-	public function removeMatch($id) {
+	public function removeMatch(string $id) : void {
 		$this->getMatch($id)->close();
 		unset($this->matches[$id]);
 	}
@@ -79,9 +86,22 @@ class MatchManager {
 	 * Keep all matches moving and clean up inactive ones
 	 *
 	 * @param $currentTick
+	 *
+	 * @return bool
 	 */
-	public function tick($currentTick) {
+	public function tick(int $currentTick) : bool {
 		$tickDiff = $currentTick - $this->lastTick;
+
+		if($tickDiff <= 0) {
+			if(!$this->justCreated) {
+				$this->getCore()->getLogger()->debug("Expected tick difference of at least 1, got {$tickDiff} for " . get_class($this));
+			}
+
+			return true;
+		}
+
+		$this->justCreated = false;
+
 		foreach($this->matches as $key => $match) {
 			if($match instanceof Match) {
 				if($match->isActive()) {
@@ -95,8 +115,40 @@ class MatchManager {
 			}
 		}
 
-		$this->getCore()->getLogger()->debug("Ticked MatchManager in " . round(($tickDiff) / 20) . " seconds ($tickDiff)!");
 		$this->lastTick = $currentTick;
+
+		return true;
+	}
+
+	/**
+	 * Check if the match manager has been closed
+	 *
+	 * @return bool
+	 */
+	public function closed() : bool {
+		return $this->closed;
+	}
+
+	/**
+	 * Safely close the match manager
+	 */
+	public function close() : void {
+		if(!$this->closed) {
+			$this->closed = true;
+
+			$this->heartbeat->cancel();
+
+			foreach($this->matches as $id => $match) {
+				$match->close();
+				unset($this->matches[$id]);
+			}
+
+			$this->setCore(null);
+		}
+	}
+
+	public function __destruct() {
+		$this->close();
 	}
 
 }
