@@ -117,6 +117,26 @@ abstract class Match {
 	}
 
 	/**
+	 * Get all players excluding the players in the array
+	 *
+	 * @param CorePlayer[] $exclude
+	 *
+	 * @return CorePlayer[]
+	 */
+	final public function getPlayersExcept(array $exclude) : array {
+		$gamePlayers = $this->players; // players currently playing
+		foreach($exclude as $p) {
+			unset($gamePlayers[$p->getName()]); // remove player from players in game if in array to be excluded
+		}
+
+		foreach($gamePlayers as $name => $uuid) {
+			$gamePlayers[$name] = Utils::lookupUuid($uuid) ?? $uuid; // fetch the actual player object from the uuid
+		}
+
+		return $gamePlayers;
+	}
+
+	/**
 	 * Remove a player from the match using a player
 	 *
 	 * @param CorePlayer $player
@@ -177,6 +197,26 @@ abstract class Match {
 		if(!isset($this->spectators[$name])) {
 			$this->spectators[$name] = $player->getUniqueId()->toString();
 		}
+	}
+
+	/**
+	 * Get all spectators excluding the players in the array
+	 *
+	 * @param CorePlayer[] $exclude
+	 *
+	 * @return CorePlayer[]
+	 */
+	final public function getSpectatorsExcept(array $exclude) : array {
+		$gameSpectators = $this->players; // spectators currently spectating
+		foreach($exclude as $p) {
+			unset($gameSpectators[$p->getName()]); // remove player from spectators in game if in array to be excluded
+		}
+
+		foreach($gameSpectators as $name => $uuid) {
+			$gameSpectators[$name] = Utils::lookupUuid($uuid) ?? $uuid; // fetch the actual player object from the uuid
+		}
+
+		return $gameSpectators;
 	}
 
 	/**
