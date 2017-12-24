@@ -267,6 +267,10 @@ abstract class Match {
 	 * @return bool
 	 */
 	public function tick($currentTick) : bool {
+		if($this->closed or !$this->active) {
+			return false;
+		}
+
 		$this->lastTick = $currentTick;
 
 		return true;
