@@ -34,8 +34,21 @@ class GUIManager {
 		$this->registerDefaults();
 	}
 
+	/**
+	 * Register the default containers
+	 */
 	protected function registerDefaults() {
-		$this->registerContainer(new ServerSelectionContainer($this->getCore()), ServerSelectionContainer::CONTAINER_ID);
+		$containers = [
+			[new ServerSelectionContainer($this->getCore()), ServerSelectionContainer::CONTAINER_ID]
+		];
+
+		foreach($containers as $container) {
+			try {
+				$this->registerContainer($container[0], $container[1]);
+			} catch(\ErrorException $e) {
+				$this->getCore()->getLogger()->debug("Failed to register container " . (new \ReflectionObject($container[1]))->getShortName() . ": " . $e->getMessage());
+			}
+		}
 	}
 
 	/**

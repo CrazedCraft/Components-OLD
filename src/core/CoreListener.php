@@ -19,12 +19,8 @@ namespace core;
 use core\database\request\auth\AuthLoginDatabaseRequest;
 use core\database\request\ban\BanCheckDatabaseRequest;
 use core\entity\text\FloatingText;
-use core\gui\container\ContainerGUI;
-use core\gui\container\defaults\ServerSelectionContainer;
 use core\gui\item\GUIItem;
 use core\language\LanguageManager;
-use core\network\NetworkNode;
-use core\network\NetworkServer;
 use core\task\DisplayLoginTitleTask;
 use core\util\traits\CorePluginReference;
 use pocketmine\entity\Entity;
@@ -44,13 +40,7 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\QueryRegenerateEvent;
-use pocketmine\network\protocol\AdventureSettingsPacket;
-use pocketmine\network\protocol\CommandStepPacket;
-use pocketmine\network\protocol\ContainerSetSlotPacket;
-use pocketmine\network\protocol\LoginPacket;
-use pocketmine\Player;
 
 class CoreListener implements Listener {
 

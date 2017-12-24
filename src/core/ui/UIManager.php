@@ -34,8 +34,21 @@ class UIManager {
 		$this->registerDefaults();
 	}
 
+	/**
+	 * Register the default forms
+	 */
 	protected function registerDefaults() {
-		$this->registerForm(new DefaultServerSelectionForm($this->getCore()), DefaultServerSelectionForm::FORM_UI_ID);
+		$forms = [
+			[new DefaultServerSelectionForm($this->getCore()), DefaultServerSelectionForm::FORM_UI_ID]
+		];
+
+		foreach($forms as $form) {
+			try {
+				$this->registerForm($form[0], $form[1]);
+			} catch (\Throwable $e) {
+				$this->getCore()->getLogger()->debug("Failed to register form " . (new \ReflectionObject($form[1]))->getShortName() . ": " . $e->getMessage());
+			}
+		}
 	}
 
 	/**

@@ -26,14 +26,22 @@ trait CorePluginReference {
 	/** @var Main */
 	private $core;
 
+	/**
+	 * Set the reference to the core's main class
+	 *
+	 * @param Main $plugin
+	 */
 	protected function setCore(Main $plugin) {
 		$this->core = $plugin;
 	}
 
 	/**
+	 * Get the core's main class
+	 *
 	 * @return Main
 	 */
 	public function getCore() {
 		return $this->core;
 	}
+
 }
