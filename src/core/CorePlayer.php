@@ -651,7 +651,7 @@ class CorePlayer extends Player {
 	public function checkKillAuraTriggers() {
 		if($this->killAuraTriggers >= 12) {
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected kill-aura!");
-			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Kill Aura"]));
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for kill-aura!");
 		}
 	}
@@ -698,7 +698,7 @@ class CorePlayer extends Player {
 	public function checkReachTriggers() {
 		if($this->reachChances >= 12) {
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected reach!");
-			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Reach"]));
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for reach!");
 		}
 	}
@@ -728,7 +728,7 @@ class CorePlayer extends Player {
 	 */
 	public function checkFlyTriggers() {
 		if($this->flyChances >= 16) {
-			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD", ["Fly"]));
+			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for flying!");
 		}
 	}

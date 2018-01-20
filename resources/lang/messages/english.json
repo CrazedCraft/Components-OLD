@@ -53,7 +53,7 @@
 
 	"SERVER_NAME": "&l&1C&ar&ea&6z&9e&5d&fC&7r&6a&cf&dt &6Server",
 
-	"KICK_BANNED_MOD": "&cYou have been kicked for using a banned client modification &6({args1})&c.\n&6Please disable your modified client to continue playing.",
+	"KICK_BANNED_MOD": "&cYou have been kicked for using a modified client!",
 
 	"KICK_SUCCESS": "&6- &aKicked {args1} from the game successfully!",
 	"STAFF_KICK": "&cYou have been kicked by &6&o{args1}&r&c!\n&eReason: &r{args2}",
