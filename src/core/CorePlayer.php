@@ -728,6 +728,12 @@ class CorePlayer extends Player {
 	 */
 	public function checkFlyTriggers() {
 		if($this->flyChances >= 16) {
+			$banWaveTask = $this->getCore()->getBanWaveTask();
+			$banWaveTask->flyKicks[$this->getName()]++; // increment number of times kicked for fly
+			if($banWaveTask->flyKicks[$this->getName()] >= 5) {
+				$banWaveTask->queue(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), strtotime("+4 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC I"));
+			}
+
 			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for flying!");
 		}

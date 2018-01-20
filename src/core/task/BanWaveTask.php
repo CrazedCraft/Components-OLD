@@ -28,6 +28,9 @@ class BanWaveTask extends PluginTask {
 
 	use CorePluginReference;
 
+	/** @var int[] */
+	public $flyKicks = []; // username => # of kicks
+
 	/** @var BanEntry[] */
 	private $banQueue = [];
 
