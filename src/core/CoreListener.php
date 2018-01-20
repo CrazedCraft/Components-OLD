@@ -351,7 +351,11 @@ class CoreListener implements Listener {
 		}
 
 		if($player->getState() === CorePlayer::STATE_LOBBY and in_array($item->getId(), self::$bannedLobbyItems) and !$this->getCore()->getBanWaveTask()->isQueued($player)) {
-			$this->getCore()->getBanWaveTask()->queue(new BanEntry(-1, $player->getName(), $player->getAddress(), $player->getClientId(), strtotime("+30 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC"));
+			if($player->isAuthenticated()) {
+				$this->getCore()->getBanWaveTask()->queue(new BanEntry(-1, $player->getName(), $player->getAddress(), $player->getClientId(), strtotime("+30 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC"));
+			}
+
+			$player->getInventory()->setItemInHand(Item::get(Item::AIR));
 		}
 	}
 
