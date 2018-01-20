@@ -738,7 +738,7 @@ class CorePlayer extends Player {
 	 * @param int $yDistance
 	 */
 	public function updateFlyTriggers(Vector3 $to, int $yDistance) {
-		//if(!$this->getAllowFlight()) { // make sure the player isn't allowed to fly
+		if(!$this->getAllowFlight()) { // make sure the player isn't allowed to fly
 			$blockInId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() + 1.5), $to->getFloorZ()); // block at players head height (used to make sure player isn't in a transparent block (cobwebs, water, etc)
 			$blockOnId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY(), $to->getFloorZ()); // block the player is on (use this for checking slabs, stairs, etc)
 			$blockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 1), $to->getFloorZ()); // block beneath the player
@@ -746,7 +746,7 @@ class CorePlayer extends Player {
 
 			if(microtime(true) - $this->lastDamagedTime >= 5) { // player hasn't taken damage for five seconds
 				// check fly upwards
-				if($yDistance >= 0.05 // TODO: Improve this so detection isn't triggered when players are moving horizontally
+				if(($yDistance >= 0.05 or $this->getInAirTicks() >= 100) // TODO: Improve this so detection isn't triggered when players are moving horizontally
 					and $this->lastMoveTime - $this->lastJumpTime >= 2) { // if the movement wasn't downwards and the player hasn't jumped for 2 seconds
 					if($inAir) { // make sure the player isn't standing on a slab or stairs and the block directly below them is air
 						$secondBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 2), $to->getFloorZ());
@@ -785,7 +785,7 @@ class CorePlayer extends Player {
 			//}
 
 			$this->checkFlyTriggers();
-		//}
+		}
 	}
 
 	/**
