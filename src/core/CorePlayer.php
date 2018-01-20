@@ -728,10 +728,15 @@ class CorePlayer extends Player {
 	 */
 	public function checkFlyTriggers() {
 		if($this->flyChances >= 16) {
-			$banWaveTask = $this->getCore()->getBanWaveTask();
-			$banWaveTask->flyKicks[$this->getName()]++; // increment number of times kicked for fly
-			if($banWaveTask->flyKicks[$this->getName()] >= 5) {
-				$banWaveTask->queue(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), strtotime("+4 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC I"));
+			if($this->isAuthenticated()) {
+				$banWaveTask = $this->getCore()->getBanWaveTask();
+				if(!isset($banWaveTask->flyKicks[$this->getName()])) {
+					$banWaveTask->flyKicks[$this->getName()] = 0;
+				}
+				$banWaveTask->flyKicks[$this->getName()]++; // increment number of times kicked for fly
+				if($banWaveTask->flyKicks[$this->getName()] >= 5) {
+					$banWaveTask->queue(new BanEntry(-1, $this->getName(), $this->getAddress(), $this->getClientId(), strtotime("+4 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC I"));
+				}
 			}
 
 			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
@@ -747,12 +752,12 @@ class CorePlayer extends Player {
 		if(!$this->getAllowFlight()) { // make sure the player isn't allowed to fly
 			$blockInId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() + 1.5), $to->getFloorZ()); // block at players head height (used to make sure player isn't in a transparent block (cobwebs, water, etc)
 			$blockOnId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY(), $to->getFloorZ()); // block the player is on (use this for checking slabs, stairs, etc)
-			$blockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 1), $to->getFloorZ()); // block beneath the player
+			$blockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 0.5), $to->getFloorZ()); // block beneath the player
 			$inAir = !in_array($blockOnId, self::$ignoredBlocks) and $blockBelowId === Block::AIR and $blockInId === Block::AIR;
 
 			if(microtime(true) - $this->lastDamagedTime >= 5) { // player hasn't taken damage for five seconds
 				// check fly upwards
-				if(($yDistance >= 0.05 or $this->getInAirTicks() >= 100) // TODO: Improve this so detection isn't triggered when players are moving horizontally
+				if(($yDistance >= 0.05 or ($this->getInAirTicks() >= 100 and $yDistance >= 0)) // TODO: Improve this so detection isn't triggered when players are moving horizontally
 					and $this->lastMoveTime - $this->lastJumpTime >= 2) { // if the movement wasn't downwards and the player hasn't jumped for 2 seconds
 					if($inAir) { // make sure the player isn't standing on a slab or stairs and the block directly below them is air
 						$secondBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 2), $to->getFloorZ());
