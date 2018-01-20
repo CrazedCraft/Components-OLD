@@ -16,6 +16,7 @@
 
 namespace core;
 
+use core\ban\BanEntry;
 use core\database\request\auth\AuthLoginDatabaseRequest;
 use core\database\request\ban\BanCheckDatabaseRequest;
 use core\entity\text\FloatingText;
@@ -41,6 +42,7 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\QueryRegenerateEvent;
+use pocketmine\item\Item;
 
 class CoreListener implements Listener {
 
@@ -82,6 +84,15 @@ class CoreListener implements Listener {
 		"gamemode",
 		"particles",
 		"say"
+	];
+
+	/* Array of item ids that are banned in the lobby */
+	public static $bannedLobbyItems = [
+		Item::FLINT_AND_STEEL,
+		Item::WATER,
+		Item::LAVA,
+		Item::FIRE,
+		Item::BUCKET,
 	];
 
 	/**
@@ -337,6 +348,10 @@ class CoreListener implements Listener {
 		$item = $event->getItem();
 		if($item instanceof GUIItem) {
 			$item->sendPreview($player);
+		}
+
+		if($player->getState() === CorePlayer::STATE_LOBBY and in_array($item->getId(), self::$bannedLobbyItems) and !$this->getCore()->getBanWaveTask()->isQueued($player)) {
+			$this->getCore()->getBanWaveTask()->queue(new BanEntry(-1, $player->getName(), $player->getAddress(), $player->getClientId(), strtotime("+30 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC"));
 		}
 	}
 

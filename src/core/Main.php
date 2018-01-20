@@ -26,6 +26,7 @@ use core\language\LanguageManager;
 use core\network\NetworkManager;
 use core\network\NetworkNode;
 use core\network\NetworkServer;
+use core\task\BanWaveTask;
 use core\task\RestartTask;
 use core\ui\UIManager;
 use core\ui\windows\DefaultServerSelectionForm;
@@ -68,6 +69,9 @@ class Main extends PluginBase {
 
 	/** @var FloatingText */
 	public $floatingText = [];
+
+	/** @var BanWaveTask */
+	private $banWaveTask;
 
 	/** @var RestartTask */
 	private $restartTask;
@@ -114,6 +118,7 @@ class Main extends PluginBase {
 		$this->setUiManager();
 		$this->setGuiManager();
 		$this->getServer()->getNetwork()->setName($this->languageManager->translate("SERVER_NAME", "en"));
+		$this->banWaveTask = new BanWaveTask($this);
 		$this->restartTask = new RestartTask($this);
 		$server = $this->getServer();
 		$this->getLogger()->info("Enabled components! (" . round(microtime(true) - $this->loadTime, 3) . "s)! Components enabled on {$server->getIp()}:{$server->getPort()} with {$server->getMaxPlayers()} slots!");
@@ -153,6 +158,8 @@ class Main extends PluginBase {
 		$map->getServer()->setOnline(false); // disable this server
 
 		$this->transferPlayers();
+
+		$this->banWaveTask->flush(); // ban all queued players before shutting the server down
 
 		$this->getDatabaseManager()->pushToPool(new UpdateNetworkServerDatabaseRequest($map->getServer())); // push this servers status to the database and mark as offline
 
@@ -232,6 +239,13 @@ class Main extends PluginBase {
 	 */
 	public function getGuiManager() : GUIManager {
 		return $this->guiManager;
+	}
+
+	/**
+	 * @return BanWaveTask
+	 */
+	public function getBanWaveTask() : BanWaveTask {
+		return $this->banWaveTask;
 	}
 
 	/**
