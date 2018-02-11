@@ -696,7 +696,7 @@ class CorePlayer extends Player {
 	 * Checks the amount of times a player has triggered the reach detection and handles the result accordingly
 	 */
 	public function checkReachTriggers() {
-		if($this->reachChances >= 12) {
+		if($this->reachChances >= 14) {
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for suspected reach!");
 			$this->kick($this->getCore()->getLanguageManager()->translateForPlayer($this, "KICK_BANNED_MOD"));
 			Utils::broadcastStaffMessage("&a" . $this->getName() . " &ehas been kicked for reach!");
@@ -727,7 +727,8 @@ class CorePlayer extends Player {
 	 * Checks the amount of times a player has triggered the fly detection and handles the result accordingly
 	 */
 	public function checkFlyTriggers() {
-		if($this->flyChances >= 16) {
+		// be more harsh on android players due to it being the easiest platform to 'hack' on
+		if(($this->getDeviceOs() === self::OS_ANDROID and $this->flyChances >= 24) or (($this->getDeviceOs() === self::OS_IOS or $this->getDeviceOs() === self::OS_WIN10) and $this->flyChances >= 32) or $this->flyChances >= 48) {
 			if($this->isAuthenticated()) {
 				$banWaveTask = $this->getCore()->getBanWaveTask();
 				if(!isset($banWaveTask->flyKicks[$this->getName()])) {
@@ -789,11 +790,13 @@ class CorePlayer extends Player {
 				}
 			}
 
-			//if($this->getInAirTicks() >= 100) { // been in air for more than 5 seconds
-			//	if($inAir) {
-			//		$this->flyChances += 2;
-			//	}
-			//}
+			if($this->getInAirTicks() >= 400) { // been in air for more than 60 seconds
+				if($inAir) {
+					$this->flyChances += 2;
+				}
+			} elseif($this->flyChances > 0) {
+				$this->flyChances -= 1;
+			}
 
 			$this->checkFlyTriggers();
 		}
