@@ -173,6 +173,9 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $joined = false;
 
+	/** @var bool */
+	private $debugFly = false;
+
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
 	const STATE_PLAYING = "state.playing";
@@ -424,6 +427,13 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public function hasDebugFly() : bool {
+		return $this->debugFly;
+	}
+
+	/**
 	 * Get a string representation of the players device operating system
 	 *
 	 * @return string
@@ -638,6 +648,13 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @param bool $value
+	 */
+	public function setDebugFly(bool $value = true) {
+		$this->debugFly = $value;
+	}
+
+	/**
 	 * Increases the amount of times a player has been detected for having kill aura
 	 */
 	public function addKillAuraTrigger() {
@@ -751,19 +768,24 @@ class CorePlayer extends Player {
 	 */
 	public function updateFlyTriggers(Vector3 $to, int $yDistance) {
 		if(!$this->getAllowFlight()) { // make sure the player isn't allowed to fly
-			$blockInId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() + 1.5), $to->getFloorZ()); // block at players head height (used to make sure player isn't in a transparent block (cobwebs, water, etc)
-			$blockOnId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY(), $to->getFloorZ()); // block the player is on (use this for checking slabs, stairs, etc)
-			$blockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 0.5), $to->getFloorZ()); // block beneath the player
-			$inAir = !in_array($blockOnId, self::$ignoredBlocks) and $blockBelowId === Block::AIR and $blockInId === Block::AIR;
+			$blockInId = $this->getLevel()->getBlockAt($to->getFloorX(), $to->getY() + 0.1, $to->getFloorZ())->getId(); // block at players feet (used to make sure player isn't in a transparent block (cobwebs, water, etc)
+			$blockOnId = $this->getLevel()->getBlockAt($to->getFloorX(), $to->getY() - 0.5, $to->getFloorZ())->getId(); // block the player is on (use this for checking slabs, stairs, etc)
+			$blockBelowId = $this->getLevel()->getBlockAt($to->getFloorX(), $to->getY() - 1, $to->getFloorZ())->getId(); // block beneath the player
+			$inAir = ($blockOnId === Block::AIR and $blockInId === Block::AIR and $blockBelowId === Block::AIR);
+
+			if($this->hasDebugFly()) {
+				$this->sendDirectTip("Air ticks: " . $this->getInAirTicks(). ", y-distance: " . $yDistance . ", In air: " . ($inAir ? "yes" : "no") . ", Fly chances: " . $this->flyChances);
+				$this->sendDirectPopup("Block on: " . $blockOnId. ", Block in: " . $blockInId . ", Block below: " . $blockBelowId);
+			}
 
 			if(microtime(true) - $this->lastDamagedTime >= 5) { // player hasn't taken damage for five seconds
 				// check fly upwards
 				if(($yDistance >= 0.05 or ($this->getInAirTicks() >= 100 and $yDistance >= 0)) // TODO: Improve this so detection isn't triggered when players are moving horizontally
 					and $this->lastMoveTime - $this->lastJumpTime >= 2) { // if the movement wasn't downwards and the player hasn't jumped for 2 seconds
 					if($inAir) { // make sure the player isn't standing on a slab or stairs and the block directly below them is air
-						$secondBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), ceil($to->getY() - 2), $to->getFloorZ());
+						$secondBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY(), $to->getFloorZ());
 						if($secondBlockBelowId === Block::AIR) { // if two blocks directly below them is air
-							$thirdBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getFloorY() - 3, $to->getFloorZ());
+							$thirdBlockBelowId = $this->getLevel()->getBlockIdAt($to->getFloorX(), $to->getY() - 3, $to->getFloorZ());
 							if($thirdBlockBelowId === Block::AIR) { // if three blocks directly below them is air
 								$this->flyChances += 2;
 							} else {
@@ -788,14 +810,6 @@ class CorePlayer extends Player {
 						$this->flyChances -= 2;
 					}
 				}
-			}
-
-			if($this->getInAirTicks() >= 400) { // been in air for more than 60 seconds
-				if($inAir) {
-					$this->flyChances += 2;
-				}
-			} elseif($this->flyChances > 0) {
-				$this->flyChances -= 1;
 			}
 
 			$this->checkFlyTriggers();
