@@ -48,6 +48,22 @@ class ConfigUtils {
 	}
 
 	/**
+	 * Construct an array of items from an array representation
+	 *
+	 * @param array $items
+	 *
+	 * @return Item[]
+	 */
+	public static function parseArrayItems(array $items) : array {
+		$new = [];
+		foreach($items as $i => $data) {
+			$new[$i] = self::parseArrayItem($data);
+		}
+
+		return $new;
+	}
+
+	/**
 	 * Construct an enchantment from an array representaion
 	 *
 	 * @param array $enchData
@@ -61,6 +77,22 @@ class ConfigUtils {
 		$ench->setLevel($enchData["level"] ?? 1);
 
 		return $ench;
+	}
+
+	/**
+	 * Construct an array of enchantments from an array representation
+	 *
+	 * @param array $enchants
+	 *
+	 * @return Enchantment[]
+	 */
+	public static function parseArrayEnchantments(array $enchants) : array {
+		$new = [];
+		foreach($enchants as $i => $data) {
+			$new[$i] = self::parseArrayEnchantment($data);
+		}
+
+		return $new;
 	}
 
 	/**
@@ -78,6 +110,22 @@ class ConfigUtils {
 		$effect->setAmplifier((int) ($effectData["amplifier"] ?? 0));
 
 		return $effect;
+	}
+
+	/**
+	 * Construct an array of effects from an array representation
+	 *
+	 * @param array $effects
+	 *
+	 * @return Effect[]
+	 */
+	public static function parseArrayEffects(array $effects) : array {
+		$new = [];
+		foreach($effects as $i => $data) {
+			$new[$i] = self::parseArrayEffect($data);
+		}
+
+		return $new;
 	}
 
 }
