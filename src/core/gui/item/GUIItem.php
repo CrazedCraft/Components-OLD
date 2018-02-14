@@ -53,6 +53,7 @@ abstract class GUIItem extends Item {
 	public function __construct(Item $item, ContainerGUI $parent = null) {
 		parent::__construct($item->getId(), $item->getDamage(), $item->getCount());
 		$this->parent = $parent;
+		$this->setCustomName($item->getCustomName());
 		$this->previewName = $this->getName(); // give the name a default value so we don't need to fetch it every time
 		$this->previewDescription = LanguageManager::getInstance()->translate("GUI_ITEM_TAP_GROUND"); // give the description a default value so we don't need to fetch it every time
 	}

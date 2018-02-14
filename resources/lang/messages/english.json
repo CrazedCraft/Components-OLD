@@ -33,6 +33,7 @@
 	"COMMAND_BANNED": "&6- &cYou do not have permission to use this command",
 	"COMMAND_USAGE": "&6- &cUsage: {args1}",
 	"STAFF_COMMAND_ONLY": "&6- &cThat's a staff command!",
+	"MUST_BE_CONSOLE_FOR_COMMAND": "&6- &cThis command can only be run from the console!",
 
 	"CANNOT_CHAT_WHILE_MUTED": "&6- &cYou cannot chat while your chat is muted!",
 	"BLOCKED_MESSAGE": "&6- &cMessage blocked by chat filter.",
