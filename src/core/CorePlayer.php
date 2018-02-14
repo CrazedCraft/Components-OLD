@@ -626,8 +626,6 @@ class CorePlayer extends Player {
 
 	/**
 	 * @param ContainerGUI $gui
-	 *
-	 * @throws \ErrorException
 	 */
 	public function openGuiContainer(ContainerGUI $gui) {
 		$this->addWindow($gui);
