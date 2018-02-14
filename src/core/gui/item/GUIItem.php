@@ -64,10 +64,10 @@ abstract class GUIItem extends Item {
 	final public function handleClick(CorePlayer $player, bool $force = false) {
 		$time = microtime(true);
 		$lang = $player->getCore()->getLanguageManager();
-		$cooldownTime = $player->getGuiCooldown(self::GUI_ITEM_ID);
+		$cooldownTime = $player->getGuiCooldown($id = (new \ReflectionObject($this))->getShortName());
 		$diff = floor($cooldownTime - $time);
 		if($diff <= 0) {
-			$player->setGuiCooldown($time + $this->getCooldown(), self::GUI_ITEM_ID);
+			$player->setGuiCooldown($time + $this->getCooldown(), $id);
 			$this->onClick($player);
 		} else {
 			$player->sendPopup($lang->translateForPlayer($player, "GUI_ITEM_COOLDOWN", [Utils::getTimeString($diff)]));
@@ -82,6 +82,17 @@ abstract class GUIItem extends Item {
 	 * @return bool
 	 */
 	public function onClick(CorePlayer $player) {
+		return true;
+	}
+
+	/**
+	 * Handles the selection of an item in a GUI container
+	 *
+	 * @param CorePlayer $player
+	 *
+	 * @return bool   Whether the item can be moved
+	 */
+	public function onSelect(CorePlayer $player) : bool {
 		return true;
 	}
 

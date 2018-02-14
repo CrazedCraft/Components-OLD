@@ -115,7 +115,7 @@ abstract class ChestGUI extends ContainerInventory implements ContainerGUI {
 	}
 
 	public function onSelect(int $slot, GUIItem $item, CorePlayer $player) : bool {
-		return false;
+		return $item->onSelect($player);
 	}
 
 	/**
