@@ -106,3 +106,5 @@ $RECYCLE.BIN/
 # Composer garbage
 compoer.phar
 /vendor/
+
+resources/debug.php

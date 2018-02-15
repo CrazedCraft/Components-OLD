@@ -18,6 +18,8 @@ namespace core\command;
 
 use core\command\commands\BanCommand;
 use core\command\commands\ChangePasswordCommand;
+use core\command\commands\CompileCoreCommand;
+use core\command\commands\CompileServerCommand;
 use core\command\commands\DebugFlyDetectionCommand;
 use core\command\commands\DumpSkinCommand;
 use core\command\commands\InfoCommand;
@@ -111,6 +113,8 @@ class CoreCommandMap {
 		$this->registerAll([
 			new BanCommand($plugin),
 			new ChangePasswordCommand($plugin),
+			new CompileCoreCommand($plugin),
+			new CompileServerCommand($plugin),
 			new DebugFlyDetectionCommand($plugin),
 			new DumpSkinCommand($plugin),
 			new InfoCommand($plugin),
