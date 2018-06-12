@@ -27,6 +27,7 @@ use core\task\CheckMessageTask;
 use core\util\traits\CorePluginReference;
 use pocketmine\block\Block;
 use pocketmine\block\Slab;
+use pocketmine\customUI\CustomUI;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
@@ -41,6 +42,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
+use pocketmine\network\mcpe\protocol\ModalFormRequestPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
 use pocketmine\plugin\PluginException;
@@ -178,6 +180,12 @@ class CorePlayer extends Player {
 
 	/** @var int */
 	private $lastJumpTime = 0;
+
+	/** @var int */
+	private $modalId = 0;
+
+	/** @var CustomUI[] */
+	protected $activeModalWindows = [];
 
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
@@ -1145,6 +1153,34 @@ class CorePlayer extends Player {
 	public function jump() : void {
 		parent::jump();
 		$this->lastJumpTime = microtime(true);
+	}
+
+	/**
+	 * @param CustomUI $modalWindow
+	 * @return boolean
+	 */
+	public function showModal($modalWindow) {
+		$pk = new ModalFormRequestPacket();
+		$pk->formId = $this->modalId++;
+		$pk->formData = $modalWindow->toJSON();
+		$this->dataPacket($pk);
+		$this->activeModalWindows[$pk->formId] = $modalWindow;
+		return true;
+	}
+
+	/**
+	 * @param integer $formId
+	 * @param string|null $data Sting in JSON format or null
+	 */
+	public function checkModal($formId, $data) {
+		if(isset($this->activeModalWindows[$formId])) {
+			if($data === null) { // The modal window was closed manually
+				$this->activeModalWindows[$formId]->close($this);
+			} else { // Player send some data
+				$this->activeModalWindows[$formId]->handle($data, $this);
+			}
+			unset($this->activeModalWindows[$formId]);
+		}
 	}
 
 }

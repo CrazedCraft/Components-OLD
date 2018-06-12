@@ -41,8 +41,10 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\QueryRegenerateEvent;
 use pocketmine\item\Item;
+use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
 
 class CoreListener implements Listener {
 
@@ -356,6 +358,15 @@ class CoreListener implements Listener {
 			}
 
 			$player->getInventory()->setItemInHand(Item::get(Item::AIR));
+		}
+	}
+
+	public function onDataPacket(DataPacketReceiveEvent $event) {
+		$pk = $event->getPacket();
+		if($pk instanceof ModalFormResponsePacket) {
+			/** @var CorePlayer $player */
+			$player = $event->getPlayer();
+			$player->checkModal($pk->formId, $pk->formData);
 		}
 	}
 
