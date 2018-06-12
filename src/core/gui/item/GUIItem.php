@@ -24,7 +24,9 @@ use core\Utils;
 use pocketmine\item\Item;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\ShortTag;
 
 abstract class GUIItem extends Item {
@@ -161,28 +163,38 @@ abstract class GUIItem extends Item {
 	 * Give the item an enchantment effect
 	 */
 	public function giveEnchantmentEffect() {
-		$tag = $this->getNamedTag();
-		$tag->ench = new Enum("ench", [
-			0 => new Compound("", [
+		$tag = $this->getNamedTagEntry(self::TAG_ENCH);
+		if(!($tag instanceof ListTag)){
+			$tag = new ListTag(self::TAG_ENCH, [], NBT::TAG_Compound);
+		}
+		$tag->set(0, new CompoundTag("",
+			[
 				"id" => new ShortTag("id", -1),
-				"lvl" => new ShortTag("lvl", 1)
+				"lvl" => new ShortTag("lvl", 1),
 			])
-		]);
-		$tag->ench->setTagType(NBT::TAG_Compound);
-		$this->setNamedTag($tag);
+		);
+
+		$this->setNamedTagEntry($tag);
 	}
 
 	/**
 	 * Remove an enchantment effect from the item
 	 */
 	public function removeEnchantmentEffect() {
-		$tag = $this->getNamedTag();
-		foreach($tag["ench"] as $key => $compound) {
-			if($compound["id"]->getValue() === -1) {
-				unset($tag->ench->{$key});
+		$ench = $this->getNamedTagEntry(self::TAG_ENCH);
+		if(!($ench instanceof ListTag)) {
+			return;
+		}
+
+		/** @var CompoundTag $entry */
+		foreach($ench as $key => $entry) {
+			if($entry->getShort("id") === -1) {
+				$ench->remove($key);
+				break;
 			}
 		}
-		$this->setNamedTag($tag);
+
+		$this->setNamedTagEntry($ench);
 	}
 
 }

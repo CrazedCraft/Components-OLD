@@ -24,8 +24,6 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
-use pocketmine\network\protocol\AddPlayerPacket;
-use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\Player;
 
 class KillAuraDetector extends HumanNPC {
@@ -42,9 +40,9 @@ class KillAuraDetector extends HumanNPC {
 	/** @var int */
 	protected $invisibleTicks = 900; // 45 seconds
 
-	public function initEntity() {
+	public function initEntity() : void {
 		parent::initEntity();
-		$this->setVisible(false);
+		$this->setInvisible(true);
 		$this->setScale(0.2);
 	}
 
@@ -62,6 +60,7 @@ class KillAuraDetector extends HumanNPC {
 	 */
 	public function setTarget(CorePlayer $player) {
 		$this->targetUuid = $player->getUniqueId()->toString();
+		$this->setSkin($player->getSkin());
 		$this->spawnTo($player);
 	}
 
@@ -78,16 +77,15 @@ class KillAuraDetector extends HumanNPC {
 	 * @return bool
 	 */
 	public function hasValidTarget() {
-		return ($target = $this->getTarget()) instanceof CorePlayer and $target->isOnline() and $target->isAuthenticated();
+		return ($target = $this->getTarget()) instanceof CorePlayer and $target->isOnline() and $target->isAuthenticatedInternally();
 	}
 
 	/**
 	 * Handle the aura detection and make sure the entity doesn't take damage
 	 *
-	 * @param float $damage
 	 * @param EntityDamageEvent $source
 	 */
-	public function attack($damage, EntityDamageEvent $source) {
+	public function attack(EntityDamageEvent $source) {
 		if($this->hasValidTarget()) {
 			$source->setCancelled();
 			if($source instanceof EntityDamageByEntityEvent) {
@@ -95,7 +93,7 @@ class KillAuraDetector extends HumanNPC {
 				if($attacker instanceof CorePlayer and $attacker->getId() === ($target = $this->getTarget())->getId()) {
 					$target->addKillAuraTrigger();
 
-					if($this->isVisible()) {
+					if($this->isInvisible()) {
 						$this->visibleTicks += 20; // stay visible for an additional second
 					} else {
 						$this->invisibleTicks -= 40; // reduce time until potentially visible by 2 seconds
@@ -111,36 +109,11 @@ class KillAuraDetector extends HumanNPC {
 	 * Make sure the entity isn't spawned to any other player except the target
 	 *
 	 * @param Player $player
-	 *
-	 * @return bool
 	 */
-	public function spawnTo(Player $player) {
+	public function spawnTo(Player $player) : void {
 		if(($target = $this->getTarget()) instanceof CorePlayer and $player->getId() === $target->getId()) {
-			if($player !== $this and !isset($this->hasSpawned[$player->getId()]) and isset($player->usedChunks[Level::chunkHash($this->chunk->getX(), $this->chunk->getZ())])) {
-				$this->hasSpawned[$player->getId()] = $player;
-
-				$pk = new PlayerListPacket();
-				$pk->type = PlayerListPacket::TYPE_ADD;
-				$pk->entries[] = [$this->getUniqueId(), $this->getId(), "", $player->skinName, $player->skin];
-				$player->dataPacket($pk);
-
-				$pk = new AddPlayerPacket();
-				$pk->uuid = $this->getUniqueId();
-				$pk->username = $this->getNameTag();
-				$pk->eid = $this->getId();
-				$pk->x = $this->x;
-				$pk->y = $this->y;
-				$pk->z = $this->z;
-				$pk->speedX = $this->motionX;
-				$pk->speedY = $this->motionY;
-				$pk->speedZ = $this->motionZ;
-				$pk->yaw = $this->yaw;
-				$pk->pitch = $this->pitch;
-				$pk->metadata = $this->dataProperties;
-				$player->dataPacket($pk);
-			}
+			parent::spawnTo($player);
 		}
-		return false;
 	}
 
 	/**
@@ -150,7 +123,7 @@ class KillAuraDetector extends HumanNPC {
 	 *
 	 * @return bool
 	 */
-	public function onUpdate($currentTick) {
+	public function onUpdate(int $currentTick) : bool {
 		parent::onUpdate($currentTick);
 
 		if($this->hasValidTarget()) {
@@ -161,11 +134,11 @@ class KillAuraDetector extends HumanNPC {
 				$this->updateMovement();
 			}
 
-			if(!$this->isVisible()) {
+			if($this->isInvisible()) {
 				if($this->visibleTicks > 0) {
 					$this->visibleTicks--;
 				} else {
-					$this->setVisible(false);
+					$this->setInvisible(true);
 					$this->invisibleTicks = 1800; // 1.5 minutes
 				}
 			} else {
@@ -177,21 +150,21 @@ class KillAuraDetector extends HumanNPC {
 					if($triggers <= 3) {
 						if($rand <= 15) {
 							$this->visibleTicks = (20 * $triggers) + 20; // 4 seconds max, 2 seconds min
-							$this->setVisible(true);
+							$this->setInvisible(false);
 						} else {
 							$this->invisibleTicks = 800; // 40 seconds
 						}
 					} elseif($triggers >= 7) {
 						if($rand <= 80) {
 							$this->visibleTicks = (20 * $triggers) + 80; // 15 seconds max, 11.7 seconds min
-							$this->setVisible(true);
+							$this->setInvisible(false);
 						} else {
 							$this->invisibleTicks = 200; // 10 seconds
 						}
 					} else {
 						if($rand <= 40) {
 							$this->visibleTicks = (20 * $triggers) + 40; // 8 seconds max, 6 seconds min
-							$this->setVisible(true);
+							$this->setInvisible(false);
 						} else {
 							$this->invisibleTicks = 800; // 25 seconds
 						}
@@ -231,8 +204,8 @@ class KillAuraDetector extends HumanNPC {
 	/**
 	 * Make sure the npc doesn't get saved
 	 */
-	public function saveNBT() {
-		return false;
+	public function saveNBT() : void{
+		return;
 	}
 
 	/**
@@ -240,7 +213,7 @@ class KillAuraDetector extends HumanNPC {
 	 *
 	 * @return array
 	 */
-	public function getDrops() {
+	public function getDrops() : array {
 		return [];
 	}
 
@@ -251,7 +224,7 @@ class KillAuraDetector extends HumanNPC {
 	 *
 	 * @return bool
 	 */
-	public function setPosition(Vector3 $pos){
+	public function setPosition(Vector3 $pos) : bool {
 		if($this->closed){
 			return false;
 		}

@@ -23,8 +23,9 @@ use core\CorePlayer;
 use core\Main;
 use core\util\traits\CorePluginReference;
 use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 
-class BanWaveTask extends PluginTask {
+class BanWaveTask extends Task {
 
 	use CorePluginReference;
 
@@ -36,11 +37,10 @@ class BanWaveTask extends PluginTask {
 
 	public function __construct(Main $plugin) {
 		$this->setCore($plugin);
-		parent::__construct($plugin);
-		$this->setHandler($plugin->getServer()->getScheduler()->scheduleRepeatingTask($this, 9600)); // flush the bans every 8 minutes
+		$plugin->getScheduler()->scheduleRepeatingTask($this, 9600); // flush the bans every 8 minutes
 	}
 
-	public function onRun($currentTick) {
+	public function onRun(int $currentTick) {
 		$this->flush();
 	}
 

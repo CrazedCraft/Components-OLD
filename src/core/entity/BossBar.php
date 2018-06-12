@@ -20,14 +20,12 @@ use core\CorePlayer;
 use core\Main;
 use core\Utils;
 use pocketmine\entity\Entity;
-use pocketmine\entity\Squid;
-use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\network\protocol\BossEventPacket;
-use pocketmine\network\protocol\MoveEntityPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
-use pocketmine\network\protocol\SetEntityDataPacket;
-use pocketmine\network\protocol\UpdateAttributesPacket;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\network\mcpe\protocol\BossEventPacket;
+use pocketmine\network\mcpe\protocol\MoveEntityPacket;
+use pocketmine\network\mcpe\protocol\RemoveEntityPacket;
+use pocketmine\network\mcpe\protocol\SetEntityDataPacket;
+use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 
 class BossBar {
 

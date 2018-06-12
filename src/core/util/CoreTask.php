@@ -16,15 +16,30 @@
 
 namespace core\util;
 
-use pocketmine\scheduler\PluginTask;
+use core\Main;
+use pocketmine\scheduler\Task;
 
-abstract class CoreTask extends PluginTask {
+abstract class CoreTask extends Task {
+
+	/** @var Main */
+	private $plugin;
+
+	public function __construct(Main $plugin) {
+		$this->plugin = $plugin;
+	}
+
+	/**
+	 * @return Main
+	 */
+	public function getOwner() {
+		return $this->plugin;
+	}
 
 	/**
 	 * Helper to quickly cancel a task
 	 */
 	public function cancel() : void {
-		$this->getOwner()->getServer()->getScheduler()->cancelTask($this->getTaskId());
+		$this->plugin->getScheduler()->cancelTask($this->getTaskId());
 	}
 
 }

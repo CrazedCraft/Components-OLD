@@ -22,7 +22,6 @@ use core\command\CoreConsoleCommand;
 use core\Main;
 use core\util\PharUtils;
 use pocketmine\command\ConsoleCommandSender;
-use pocketmine\network\protocol\Info;
 use pocketmine\plugin\FolderPluginLoader;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;

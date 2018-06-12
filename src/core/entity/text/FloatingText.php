@@ -18,10 +18,9 @@ namespace core\entity\text;
 
 use core\Main;
 use pocketmine\entity\Entity;
-use pocketmine\item\Item;
 use pocketmine\level\Position;
-use pocketmine\network\protocol\AddPlayerPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
+use pocketmine\network\mcpe\protocol\RemoveEntityPacket;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\UUID;
@@ -86,15 +85,15 @@ class FloatingText {
 			$this->hasSpawned[$player->getId()] = true;
 
 			$pk = new AddPlayerPacket();
-			$pk->eid = $this->eid;
+			$pk->entityRuntimeId = $this->eid;
+			$pk->entityUniqueId = $this->eid;
 			$pk->uuid = UUID::fromRandom();
-			$pk->x = $this->pos->x;
-			$pk->y = $this->pos->y + 0.15;
-			$pk->z = $this->pos->z;
+			$pk->position = $this->pos->add(0, 0.15);
 			$pk->yaw = 0;
 			$pk->pitch = 0;
+			$flags = Entity::DATA_FLAG_CAN_SHOW_NAMETAG & Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG & Entity::DATA_FLAG_IMMOBILE;
 			$pk->metadata = [
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_CAN_SHOW_NAMETAG => true, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG => true, Entity::DATA_FLAG_IMMOBILE => true]],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->text],
 				Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],

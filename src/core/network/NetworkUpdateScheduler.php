@@ -16,17 +16,16 @@
 
 namespace core\network;
 
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 
-class NetworkUpdateScheduler extends PluginTask {
+class NetworkUpdateScheduler extends Task {
 
 	/** @var NetworkManager */
 	private $manager;
 
 	public function __construct(NetworkManager $manager) {
 		$this->manager = $manager;
-		parent::__construct($plugin = $manager->getCore());
-		$plugin->getServer()->getScheduler()->scheduleRepeatingTask($this, $plugin->getSettings()->getNested("settings.network.sync-interval", 20));
+		$manager->getCore()->getScheduler()->scheduleRepeatingTask($this, $manager->getCore()->getSettings()->getNested("settings.network.sync-interval", 20));
 	}
 
 	public function onRun($currentTick) {

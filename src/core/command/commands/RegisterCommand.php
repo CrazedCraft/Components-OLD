@@ -27,7 +27,7 @@ class RegisterCommand extends CoreUnauthenticatedUserCommand {
 	}
 
 	public function onRun(CorePlayer $player, array $args) {
-		if(!$player->isAuthenticated()) {
+		if(!$player->isAuthenticatedInternally()) {
 			if(isset($args[0])) {
 				$message = implode(" ", $args);
 				$player->handleAuth($message);

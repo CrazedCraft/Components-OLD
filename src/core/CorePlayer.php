@@ -38,15 +38,12 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\Enum;
-use pocketmine\nbt\tag\FloatTag;
-use pocketmine\network\protocol\AvailableCommandsPacket;
-use pocketmine\network\protocol\LevelEventPacket;
+use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
+use pocketmine\network\mcpe\protocol\LevelEventPacket;
+use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
-use pocketmine\utils\PluginException;
+use pocketmine\plugin\PluginException;
 use pocketmine\utils\TextFormat;
 
 class CorePlayer extends Player {
@@ -176,6 +173,12 @@ class CorePlayer extends Player {
 	/** @var bool */
 	private $debugFly = false;
 
+	/** @var int */
+	private $deviceOs = -1;
+
+	/** @var int */
+	private $lastJumpTime = 0;
+
 	/** Game statuses */
 	const STATE_LOBBY = "state.lobby";
 	const STATE_PLAYING = "state.playing";
@@ -187,6 +190,7 @@ class CorePlayer extends Player {
 	const AUTH_EMAIL = "auth.email";
 
 	/** Device operating systems */
+	const OS_UNKNOWN = 0;
 	const OS_ANDROID = 1;
 	const OS_IOS = 2;
 	const OS_OSX = 3;
@@ -205,8 +209,8 @@ class CorePlayer extends Player {
 	 * @param string $ip
 	 * @param int $port
 	 */
-	public function __construct(SourceInterface $interface, $clientID, $ip, $port) {
-		parent::__construct($interface, $clientID, $ip, $port);
+	public function __construct(SourceInterface $interface, string $ip, string $port) {
+		parent::__construct($interface, $ip, $port);
 
 		$plugin = $this->getServer()->getPluginManager()->getPlugin("Components");
 		if($plugin instanceof Main and $plugin->isEnabled()) {
@@ -217,7 +221,7 @@ class CorePlayer extends Player {
 		}
 	}
 
-	public function initEntity() {
+	public function initEntity() : void {
 		parent::initEntity();
 
 		$this->banList = new BanList($this);
@@ -240,7 +244,7 @@ class CorePlayer extends Player {
 	/**
 	 * @return bool
 	 */
-	public function isAuthenticated() {
+	public function isAuthenticatedInternally() {
 		return $this->authenticated;
 	}
 
@@ -397,6 +401,13 @@ class CorePlayer extends Player {
 	}
 
 	/**
+	 * @return int
+	 */
+	public function getDeviceOS() {
+		return $this->deviceOs;
+	}
+
+	/**
 	 * @param string $id
 	 *
 	 * @return bool
@@ -459,10 +470,6 @@ class CorePlayer extends Player {
 			default:
 				return "Unknown";
 		}
-	}
-
-	public function getInAirTicks() {
-		return $this->inAirTicks;
 	}
 
 	/**
@@ -675,30 +682,15 @@ class CorePlayer extends Player {
 	 * Spawn the kill aura detection entities
 	 */
 	public function spawnKillAuraDetectors() {
-		$nbt = new Compound("", [
-			"Pos" => new Enum("Pos", [
-				new DoubleTag("", $this->x),
-				new DoubleTag("", $this->y),
-				new DoubleTag("", $this->z)
-			]),
-			"Motion" =>new Enum("Motion", [
-				new DoubleTag("", 0),
-				new DoubleTag("", 0),
-				new DoubleTag("", 0)
-			]),
-			"Rotation" => new Enum("Rotation", [
-				new FloatTag("", 180),
-				new FloatTag("", 0)
-			]),
-		]);
-		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
+		$nbt = Entity::createBaseNBT($this->asVector3(), null, 180);
+		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel(), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
 			$entity->setOffset(new Vector3(0, 3, 0));
 		} else {
 			$entity->kill();
 		}
-		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), clone $nbt);
+		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel(), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
 			$entity->setOffset(new Vector3(0, -1, 0));
@@ -744,7 +736,7 @@ class CorePlayer extends Player {
 	public function checkFlyTriggers() {
 		// be more harsh on android players due to it being the easiest platform to 'hack' on
 		if(($this->getDeviceOs() === self::OS_ANDROID and $this->flyChances >= 24) or (($this->getDeviceOs() === self::OS_IOS or $this->getDeviceOs() === self::OS_WIN10) and $this->flyChances >= 32) or $this->flyChances >= 48) {
-			if($this->isAuthenticated()) {
+			if($this->isAuthenticatedInternally()) {
 				$banWaveTask = $this->getCore()->getBanWaveTask();
 				if(!isset($banWaveTask->flyKicks[$this->getName()])) {
 					$banWaveTask->flyKicks[$this->getName()] = 0;
@@ -772,8 +764,8 @@ class CorePlayer extends Player {
 			$inAir = ($blockOnId === Block::AIR and $blockInId === Block::AIR and $blockBelowId === Block::AIR);
 
 			if($this->hasDebugFly()) {
-				$this->sendDirectTip("Air ticks: " . $this->getInAirTicks(). ", y-distance: " . $yDistance . ", In air: " . ($inAir ? "yes" : "no") . ", Fly chances: " . $this->flyChances);
-				$this->sendDirectPopup("Block on: " . $blockOnId. ", Block in: " . $blockInId . ", Block below: " . $blockBelowId);
+				$this->sendTip("Air ticks: " . $this->getInAirTicks(). ", y-distance: " . $yDistance . ", In air: " . ($inAir ? "yes" : "no") . ", Fly chances: " . $this->flyChances);
+				$this->sendPopup("Block on: " . $blockOnId. ", Block in: " . $blockInId . ", Block below: " . $blockBelowId);
 			}
 
 			if(microtime(true) - $this->lastDamagedTime >= 5) { // player hasn't taken damage for five seconds
@@ -826,14 +818,12 @@ class CorePlayer extends Player {
 	public function sendLoginTitle() {
 		$this->setHasSentLoginTitle(true);
 
-		$subtitleKey = ($this->isAuthenticated() ? "WELCOME_SUBTITLE" : ($this->isRegistered() ? "WELCOME_LOGIN_SUBTITLE" : "WELCOME_REGISTER_SUBTITLE"));
+		$subtitleKey = ($this->isAuthenticatedInternally() ? "WELCOME_SUBTITLE" : ($this->isRegistered() ? "WELCOME_LOGIN_SUBTITLE" : "WELCOME_REGISTER_SUBTITLE"));
 
 		$this->addTitle($this->getCore()->getLanguageManager()->translateForPlayer($this, "WELCOME_TITLE", [], false), $this->getCore()->getLanguageManager()->translateForPlayer($this, $subtitleKey, [], false), 10, 100, 10);
 
 		$pk = new LevelEventPacket();
-		$pk->x = $this->x;
-		$pk->y = $this->y;
-		$pk->z = $this->z;
+		$pk->position = $this->asVector3();
 		$pk->evid = LevelEventPacket::EVENT_GUARDIAN_CURSE;
 		$pk->data = 0;
 		$this->dataPacket($pk);
@@ -956,14 +946,13 @@ class CorePlayer extends Player {
 	}
 
 	/**
-	 * @param float $damage
 	 * @param EntityDamageEvent $source
 	 *
 	 * @return bool
 	 */
-	public function attack($damage, EntityDamageEvent $source) {
+	public function attack(EntityDamageEvent $source) : void {
 		if($this->state === self::STATE_PLAYING) {
-			parent::attack($damage, $source);
+			parent::attack($source);
 			if(!$source->isCancelled()) {
 				$this->lastDamagedTime = microtime(true);
 				if($source instanceof EntityDamageByEntityEvent and $source->getCause() === EntityDamageEvent::CAUSE_ENTITY_ATTACK) {
@@ -973,10 +962,10 @@ class CorePlayer extends Player {
 					}
 				}
 			}
-			return true;
+
+			return;
 		}
 		$source->setCancelled(true);
-		return $source->isCancelled();
 	}
 
 	/**
@@ -985,14 +974,16 @@ class CorePlayer extends Player {
 	 * @param bool $forReal
 	 * @return bool
 	 */
-	public function kill($forReal = false) {
-		if($forReal) return parent::kill();
+	public function kill($forReal = false) : void {
+		if($forReal) {
+			parent::kill();
+			return;
+		}
 		$this->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
 		$this->setHealth($this->getMaxHealth());
-		return true;
 	}
 
-	public function onUpdate($currentTick) {
+	public function onUpdate(int $currentTick) : bool {
 		if($currentTick % 100 == 0) { // only check ping every 5 seconds (100 ticks)
 			if($this->getPing() >= 1000) {
 				if($this->getPing() >= 2000) {
@@ -1038,14 +1029,14 @@ class CorePlayer extends Player {
 		$this->commandData = $default;
 
 		$pk = new AvailableCommandsPacket();
-		$pk->commands = json_encode($default);
+		$pk->commandData = json_encode($default);
 		$this->dataPacket($pk);
 	}
 
 	/**
 	 * @param Player $player
 	 */
-	public function spawnTo(Player $player) {
+	public function spawnTo(Player $player) : void {
 		if($player instanceof CorePlayer and $player->showPlayers) parent::spawnTo($player);
 	}
 
@@ -1074,7 +1065,7 @@ class CorePlayer extends Player {
 	public function onChat(PlayerChatEvent $event) {
 		$message = $event->getMessage();
 		$event->setCancelled();
-		if($this->isOnline() and $this->isAuthenticated()) {
+		if($this->isOnline() and $this->isAuthenticatedInternally()) {
 			//if(Main::$debug) $start = microtime(true);
 			if(!$this->hasChatMuted()) {
 				if(($key = $this->getCore()->getLanguageManager()->check($message)) !== false) {
@@ -1115,7 +1106,7 @@ class CorePlayer extends Player {
 	 * @param PlayerInteractEvent $event
 	 */
 	public function onInteract(PlayerInteractEvent $event) {
-		if($this->isAuthenticated()) {
+		if($this->isAuthenticatedInternally()) {
 			$item = $this->getInventory()->getItemInHand();
 			if($item instanceof GUIItem) {
 				$item->handleClick($this, true);
@@ -1142,6 +1133,18 @@ class CorePlayer extends Player {
 	 */
 	public function onLogin(PlayerLoginEvent $event) {
 		$this->banList = new BanList($this);
+	}
+
+	public function handleLogin(LoginPacket $packet) : bool {
+		if(isset($packet->clientData["DeviceOS"])) {
+			$this->deviceOs = $packet->clientData["DeviceOS"];
+		}
+		return parent::handleLogin($packet);
+	}
+
+	public function jump() : void {
+		parent::jump();
+		$this->lastJumpTime = microtime(true);
 	}
 
 }

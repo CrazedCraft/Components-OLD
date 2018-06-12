@@ -18,18 +18,17 @@ namespace core\database\task;
 
 use core\database\CoreDatabaseManager;
 use core\database\DatabaseManager;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 
-class DatabaseRequestScheduler extends PluginTask {
+class DatabaseRequestScheduler extends Task {
 
 	/** @var CoreDatabaseManager */
 	private $manager;
 
 	public function __construct(DatabaseManager $manager) {
 		$this->manager = $manager;
-		parent::__construct($manager->getCore());
 
-		$manager->getCore()->getServer()->getScheduler()->scheduleRepeatingTask($this, 20); // process the batch pool every second
+		$manager->getCore()->getScheduler()->scheduleRepeatingTask($this, 20); // process the batch pool every second
 	}
 
 	public function getManager() : DatabaseManager {

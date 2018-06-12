@@ -20,11 +20,11 @@ use core\language\LanguageUtils;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\LittleEndianNBTStream;
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\network\protocol\TileEntityDataPacket;
-use pocketmine\network\protocol\UpdateBlockPacket;
-use pocketmine\Player;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\BlockEntityDataPacket;
+use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat as TF;
 
@@ -35,6 +35,9 @@ class Utils {
 
 	/** @var CorePlayer[] */
 	protected static $playerLookup = [];
+
+	/** @var LittleEndianNBTStream */
+	protected static $nbtWriter;
 
 	/**
 	 * Get a vector instance from a string
@@ -217,24 +220,30 @@ class Utils {
 	 */
 	public static function sendBlock(CorePlayer $player, Vector3 $pos, $id, $damage) {
 		$pk = new UpdateBlockPacket();
-		$pk->records[] = [$pos->x, $pos->z, $pos->y, $id, $damage, UpdateBlockPacket::FLAG_PRIORITY];
+		$pk->blockRuntimeId = $id;
+		$pk->dataLayerId = $damage;
+		$pk->x = $pos->x;
+		$pk->y = $pos->y;
+		$pk->z = $pos->z;
+		$pk->flags = UpdateBlockPacket::FLAG_PRIORITY;
 		$player->dataPacket($pk);
 	}
 
 	/**
 	 * @param CorePlayer $player
 	 * @param Vector3 $pos
-	 * @param Compound $namedtag
+	 * @param CompoundTag $namedtag
 	 */
-	public static function sendTile(CorePlayer $player, Vector3 $pos, Compound $namedtag) {
-		$nbt = new NBT(NBT::LITTLE_ENDIAN);
-		$nbt->setData($namedtag);
+	public static function sendTile(CorePlayer $player, Vector3 $pos, CompoundTag $namedtag) {
+		if(self::$nbtWriter === null) {
+			self::$nbtWriter = new LittleEndianNBTStream();
+		}
 
-		$pk = new TileEntityDataPacket();
+		$pk = new BlockEntityDataPacket();
 		$pk->x = $pos->x;
 		$pk->y = $pos->y;
 		$pk->z = $pos->z;
-		$pk->namedtag = $nbt->write(true);
+		$pk->namedtag = self::$nbtWriter->write($namedtag);;
 		$player->dataPacket($pk);
 	}
 

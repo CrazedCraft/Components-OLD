@@ -31,7 +31,7 @@ abstract class CoreStaffCommand extends CoreCommand {
 	 */
 	protected function run(CommandSender $sender, array $args) {
 		if($sender instanceof CorePlayer) {
-			if($sender->isAuthenticated()) {
+			if($sender->isAuthenticatedInternally()) {
 				if($sender->isStaff()) {
 					return $this->onRun($sender, $args);
 				} else {

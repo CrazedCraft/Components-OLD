@@ -23,9 +23,6 @@ abstract class DatabaseManager {
 
 	use CorePluginReference;
 
-	/** @var Main */
-	private $plugin;
-
 	/** @var bool */
 	private $closed = false;
 

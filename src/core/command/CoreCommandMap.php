@@ -113,8 +113,8 @@ class CoreCommandMap {
 		$this->registerAll([
 			new BanCommand($plugin),
 			new ChangePasswordCommand($plugin),
-			new CompileCoreCommand($plugin),
-			new CompileServerCommand($plugin),
+			//new CompileCoreCommand($plugin),
+			//new CompileServerCommand($plugin),
 			new DebugFlyDetectionCommand($plugin),
 			new DumpSkinCommand($plugin),
 			new InfoCommand($plugin),

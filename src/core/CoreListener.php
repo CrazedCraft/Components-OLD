@@ -143,12 +143,12 @@ class CoreListener implements Listener {
 		$player = $event->getPlayer();
 		$ips = 0;
 
-		$player->setDataProperty(Entity::DATA_FLAG_INVISIBLE, Entity::DATA_TYPE_BYTE, 1); // make players invisible until they're authenticated
+		$player->setInvisible(true); // make players invisible until they're authenticated
 
 		/** @var CorePlayer $p */
 		foreach($this->getCore()->getServer()->getOnlinePlayers() as $p) {
 			$p->hidePlayer($player);
-			if(!$p->isAuthenticated())
+			if(!$p->isAuthenticatedInternally())
 				$player->hidePlayer($p);
 			if(strtolower($p->getName()) === strtolower($player->getName())) {
 				if($p->getAddress() === $player->getAddress()) {
@@ -228,7 +228,7 @@ class CoreListener implements Listener {
 			$command = substr($message, 1);
 			$args = explode(" ", $command);
 
-			if(!$player->isAuthenticated()) {
+			if(!$player->isAuthenticatedInternally()) {
 				if(in_array($args[0], self::$whitelistedCommands)) {
 					// let the command do it's thing ;p
 					return;
@@ -332,7 +332,7 @@ class CoreListener implements Listener {
 		Utils::removeFromUuidLookup($player);
 
 		$event->setQuitMessage("");
-		if($player->isAuthenticated())
+		if($player->isAuthenticatedInternally())
 			$player->doGeneralUpdate();
 	}
 
@@ -351,7 +351,7 @@ class CoreListener implements Listener {
 		}
 
 		if($player->getState() === CorePlayer::STATE_LOBBY and in_array($item->getId(), self::$bannedLobbyItems) and !$this->getCore()->getBanWaveTask()->isQueued($player)) {
-			if($player->isAuthenticated()) {
+			if($player->isAuthenticatedInternally()) {
 				$this->getCore()->getBanWaveTask()->queue(new BanEntry(-1, $player->getName(), $player->getAddress(), $player->getClientId(), strtotime("+30 days"), time(), true, "You were banned automatically ¯\_(ツ)_/¯", "MAGIC"));
 			}
 

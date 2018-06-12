@@ -21,7 +21,9 @@ namespace core\util;
 use core\exception\InvalidConfigException;
 use core\language\LanguageUtils;
 use pocketmine\entity\Effect;
+use pocketmine\entity\EffectInstance;
 use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\Item;
 
 class ConfigUtils {
@@ -68,11 +70,12 @@ class ConfigUtils {
 	 *
 	 * @param array $enchData
 	 *
-	 * @return Enchantment
+	 * @return EnchantmentInstance
 	 */
 	public static function parseArrayEnchantment(array $enchData) : Enchantment {
-		$ench = (is_string($enchData["name"]) ? Enchantment::getEnchantmentByName($enchData["name"]) : Enchantment::getEnchantment((int) $enchData["name"]));
-		if(!$ench instanceof Enchantment) throw new InvalidConfigException("Unknown enchantment name supplied for kit item! Value: " . $enchData["name"] ?? "NULL");
+		$id = (is_string($enchData["name"]) ? Enchantment::getEnchantmentByName($enchData["name"]) : Enchantment::getEnchantment((int) $enchData["name"]));
+		$ench = new EnchantmentInstance($id);
+		if(!$ench instanceof EnchantmentInstance) throw new InvalidConfigException("Unknown enchantment name supplied for kit item! Value: " . $enchData["name"] ?? "NULL");
 
 		$ench->setLevel($enchData["level"] ?? 1);
 
@@ -103,7 +106,8 @@ class ConfigUtils {
 	 * @return Effect
 	 */
 	public static function parseArrayEffect(array $effectData) : Effect {
-		$effect = (is_string($effectData["name"]) ? Effect::getEffectByName($effectData["name"]) : Effect::getEffect((int) $effectData["name"]));
+		$id = (is_string($effectData["name"]) ? Effect::getEffectByName($effectData["name"]) : Effect::getEffect((int) $effectData["name"]));
+		$effect = new EffectInstance($id);
 		if(!$effect instanceof Effect) throw new InvalidConfigException("Unknown effect name supplied for kit effect! Value: " . $effectData["name"] ?? "NULL");
 
 		$effect->setDuration((int) ($effectData["time"] ?? 100));

@@ -20,16 +20,16 @@ use core\CorePlayer;
 use core\Main;
 use core\Utils;
 use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 
-class BossBarUpdateTask extends PluginTask {
+class BossBarUpdateTask extends Task {
 
 	/** @var BossBar */
 	private $bossBar = null;
 
 	public function __construct(Main $plugin, BossBar $bossBar) {
 		$this->bossBar = $bossBar;
-		parent::__construct($plugin);
-		$plugin->getServer()->getScheduler()->scheduleRepeatingTask($this, 20 * 5);
+		$plugin->getScheduler()->scheduleRepeatingTask($this, 20 * 5);
 	}
 
 	public function onRun($currentTick) {

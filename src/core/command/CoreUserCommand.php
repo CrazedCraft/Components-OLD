@@ -32,7 +32,7 @@ abstract class CoreUserCommand extends CoreCommand {
 	 */
 	protected function run(CommandSender $sender, array $args) {
 		if($sender instanceof CorePlayer) {
-			if($sender->isAuthenticated()) {
+			if($sender->isAuthenticatedInternally()) {
 				return $this->onRun($sender, $args);
 			} else {
 				$sender->sendTranslatedMessage("MUST_AUTHENTICATE_FIRST");

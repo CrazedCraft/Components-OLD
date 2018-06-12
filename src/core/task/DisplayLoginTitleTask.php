@@ -20,12 +20,12 @@ use core\CorePlayer;
 use core\Main;
 use core\util\traits\CorePluginReference;
 use core\Utils;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 
 /**
  * Simple class used to delay the display of the login title so slower device don't miss it
  */
-class DisplayLoginTitleTask extends PluginTask {
+class DisplayLoginTitleTask extends Task {
 
 	use CorePluginReference;
 
@@ -35,9 +35,8 @@ class DisplayLoginTitleTask extends PluginTask {
 	public function __construct(Main $plugin, CorePlayer $player) {
 		$this->setCore($plugin);
 		$this->uuid = $player->getUniqueId()->toString();
-		parent::__construct($plugin);
 
-		$this->setHandler($plugin->getServer()->getScheduler()->scheduleDelayedTask($this, 60));
+		$plugin->getScheduler()->scheduleDelayedTask($this, 60);
 	}
 
 	public function onRun($currentTick) {

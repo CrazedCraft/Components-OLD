@@ -1,9 +1,7 @@
 name: Components
 authors:
   - "Jack Noordhuis"
-version: 0.0.4_ALPHA
+version: 0.0.5_ALPHA
 main: \core\Main
 load: STARTUP
-api:
-  - 1.0.0
-  - 2.0.0
+api: [3.0.0-ALPHA12]

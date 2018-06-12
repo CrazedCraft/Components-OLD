@@ -21,8 +21,7 @@ use core\language\LanguageManager;
 use core\Main;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
-use pocketmine\utils\PluginException;
-use pocketmine\utils\TextFormat;
+use pocketmine\plugin\PluginException;
 
 /**
  * Check messages for blocked phrases and passwords in chat in an
