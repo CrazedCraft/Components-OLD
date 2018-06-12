@@ -18,6 +18,7 @@ namespace core\entity\text;
 
 use core\Main;
 use pocketmine\entity\Entity;
+use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\RemoveEntityPacket;
@@ -87,10 +88,12 @@ class FloatingText {
 			$pk = new AddPlayerPacket();
 			$pk->entityRuntimeId = $this->eid;
 			$pk->entityUniqueId = $this->eid;
+			$pk->username = "";
 			$pk->uuid = UUID::fromRandom();
 			$pk->position = $this->pos->add(0, 0.15);
 			$pk->yaw = 0;
 			$pk->pitch = 0;
+			$pk->item = Item::get(Item::AIR);
 			$flags = Entity::DATA_FLAG_CAN_SHOW_NAMETAG & Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG & Entity::DATA_FLAG_IMMOBILE;
 			$pk->metadata = [
 				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],

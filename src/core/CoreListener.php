@@ -140,7 +140,11 @@ class CoreListener implements Listener {
 		$event->setPlayerClass(CorePlayer::class);
 	}
 
-	public function onPreLogin(PlayerPreLoginEvent $event) {
+	public function onLogin(PlayerLoginEvent $event) {
+		/** @var CorePlayer $player */
+		$player = $event->getPlayer();
+		$player->onLogin($event);
+
 		/** @var CorePlayer $player */
 		$player = $event->getPlayer();
 		$ips = 0;
@@ -175,12 +179,6 @@ class CoreListener implements Listener {
 		$this->getCore()->getDatabaseManager()->pushToPool(new BanCheckDatabaseRequest(strtolower($player->getName()), $player->getAddress(), $player->getClientId(), $player->getXUID()));
 
 		$player->setChatMuted(true);
-	}
-
-	public function onLogin(PlayerLoginEvent $event) {
-		/** @var CorePlayer $player */
-		$player = $event->getPlayer();
-		$player->onLogin($event);
 	}
 
 	public function onJoin(PlayerJoinEvent $event) {

@@ -72,13 +72,12 @@ class ConfigUtils {
 	 *
 	 * @return EnchantmentInstance
 	 */
-	public static function parseArrayEnchantment(array $enchData) : Enchantment {
+	public static function parseArrayEnchantment(array $enchData) : EnchantmentInstance {
 		$id = (is_string($enchData["name"]) ? Enchantment::getEnchantmentByName($enchData["name"]) : Enchantment::getEnchantment((int) $enchData["name"]));
+		if(!$id instanceof Enchantment) throw new InvalidConfigException("Unknown enchantment name supplied for kit item! Value: " . $enchData["name"] ?? "NULL");
+
 		$ench = new EnchantmentInstance($id);
-		if(!$ench instanceof EnchantmentInstance) throw new InvalidConfigException("Unknown enchantment name supplied for kit item! Value: " . $enchData["name"] ?? "NULL");
-
 		$ench->setLevel($enchData["level"] ?? 1);
-
 		return $ench;
 	}
 
@@ -105,14 +104,13 @@ class ConfigUtils {
 	 *
 	 * @return Effect
 	 */
-	public static function parseArrayEffect(array $effectData) : Effect {
+	public static function parseArrayEffect(array $effectData) : EffectInstance {
 		$id = (is_string($effectData["name"]) ? Effect::getEffectByName($effectData["name"]) : Effect::getEffect((int) $effectData["name"]));
-		$effect = new EffectInstance($id);
-		if(!$effect instanceof Effect) throw new InvalidConfigException("Unknown effect name supplied for kit effect! Value: " . $effectData["name"] ?? "NULL");
+		if(!$id instanceof Effect) throw new InvalidConfigException("Unknown effect name supplied for kit effect! Value: " . $effectData["name"] ?? "NULL");
 
+		$effect = new EffectInstance($id);
 		$effect->setDuration((int) ($effectData["time"] ?? 100));
 		$effect->setAmplifier((int) ($effectData["amplifier"] ?? 0));
-
 		return $effect;
 	}
 

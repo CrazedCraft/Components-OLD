@@ -55,7 +55,7 @@ class ServerSelectionContainer extends ChestGUI {
 		return $this->defaultContents;
 	}
 
-	public function onOpen(Player $who) {
+	public function onOpen(Player $who) : void {
 		$this->setContents($this->getDefaultContents());
 		parent::onOpen($who);
 	}

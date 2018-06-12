@@ -39,6 +39,9 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\ByteArrayTag;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -213,11 +216,10 @@ class CorePlayer extends Player {
 	 * Make sure the core plugin is enabled before an instance is constructed
 	 *
 	 * @param SourceInterface $interface
-	 * @param null $clientID
 	 * @param string $ip
 	 * @param int $port
 	 */
-	public function __construct(SourceInterface $interface, string $ip, string $port) {
+	public function __construct(SourceInterface $interface, string $ip, int $port) {
 		parent::__construct($interface, $ip, $port);
 
 		$plugin = $this->getServer()->getPluginManager()->getPlugin("Components");
@@ -504,6 +506,7 @@ class CorePlayer extends Player {
 	public function setAuthenticated($authenticated = true) {
 		$this->authenticated = $authenticated;
 		$this->chatMuted = false;
+		$this->setInvisible(false);
 		$this->setLoginTime();
 		/** @var CorePlayer $p */
 		foreach($this->getServer()->getOnlinePlayers() as $p) {
@@ -691,6 +694,14 @@ class CorePlayer extends Player {
 	 */
 	public function spawnKillAuraDetectors() {
 		$nbt = Entity::createBaseNBT($this->asVector3(), null, 180);
+		$nbt->setTag(new CompoundTag("Skin", [
+			new StringTag("Name", $this->skin->getSkinId()),
+			new ByteArrayTag("Data", $this->skin->getSkinData()),
+			new ByteArrayTag("CapeData", $this->skin->getCapeData()),
+			new StringTag("GeometryName", $this->skin->getGeometryName()),
+			new ByteArrayTag("GeometryData", $this->skin->getGeometryData())
+		]));
+
 		$entity = Entity::createEntity("KillAuraDetector", $this->getLevel(), clone $nbt);
 		if($entity instanceof KillAuraDetector) {
 			$entity->setTarget($this);
@@ -1028,17 +1039,17 @@ class CorePlayer extends Player {
 	}
 
 	public function sendCommandData() {
-		$default = $this->getCore()->getCommandMap()->getDefaultCommandData();
-
-		if($this->isStaff()) {
-			$default = array_merge($default, $this->getCore()->getCommandMap()->getCommandData("staff"));
-		}
-
-		$this->commandData = $default;
-
-		$pk = new AvailableCommandsPacket();
-		$pk->commandData = json_encode($default);
-		$this->dataPacket($pk);
+		//$default = $this->getCore()->getCommandMap()->getDefaultCommandData();
+		//
+		//if($this->isStaff()) {
+		//	$default = array_merge($default, $this->getCore()->getCommandMap()->getCommandData("staff"));
+		//}
+		//
+		//$this->commandData = $default;
+		//
+		//$pk = new AvailableCommandsPacket();
+		//$pk->commandData = json_encode($default);
+		//$this->dataPacket($pk);
 	}
 
 	/**

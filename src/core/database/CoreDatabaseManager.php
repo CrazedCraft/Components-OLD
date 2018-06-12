@@ -119,7 +119,7 @@ class CoreDatabaseManager extends DatabaseManager {
 		}
 
 		if(!empty($requests)) { // don't spam unneeded async tasks
-			$this->getCore()->getServer()->getScheduler()->scheduleAsyncTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
+			$this->getCore()->getServer()->getAsyncPool()->submitTask(new AsyncDatabaseRequestExecutor($this->getCredentials("main"), $requests));
 		}
 	}
 

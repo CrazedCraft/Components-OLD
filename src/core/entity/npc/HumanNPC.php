@@ -21,22 +21,25 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\level\Level;
+use pocketmine\level\ChunkLoader;
+use pocketmine\level\format\Chunk;
 use pocketmine\level\Location;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\Player;
 use pocketmine\plugin\PluginException;
 
-abstract class HumanNPC extends Human implements BaseNPC {
+abstract class HumanNPC extends Human implements BaseNPC, ChunkLoader {
 
 	/** @var Main */
 	private $core;
 
 	/** @var string */
 	protected $name;
+
+	public $active = true;
 
 	/**
 	 * @return Main
@@ -56,7 +59,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 
 			$pk = new PlayerListPacket();
 			$pk->type = PlayerListPacket::TYPE_ADD;
-			$pk->entries[] = PlayerListEntry::createAdditionEntry($this->getUniqueId(), $this->getId(), "", 0, $this->skin, "");
+			$pk->entries[] = PlayerListEntry::createAdditionEntry($this->getUniqueId(), $this->getId(), "", "", 0, $this->skin, "", "");
 			$player->dataPacket($pk);
 
 			$this->sendSpawnPacket($player);
@@ -77,8 +80,8 @@ abstract class HumanNPC extends Human implements BaseNPC {
 	/**
 	 * Make sure the npc doesn't get saved
 	 */
-	public function saveNBT() {
-		return false;
+	public function saveNBT() : void {
+		return;
 	}
 
 	/**
@@ -100,7 +103,7 @@ abstract class HumanNPC extends Human implements BaseNPC {
 			throw new PluginException("Core plugin isn't loaded!");
 		}
 		$this->name = $this->getNameTag();
-		$this->core->freezeLoadedChunks();
+		$this->getLevel()->registerChunkLoader($this, $this->chunk->getX(), $this->chunk->getZ());
 		$this->setImmobile();
 		$this->setNameTagVisible();
 		$this->setNameTagAlwaysVisible();
@@ -153,6 +156,39 @@ abstract class HumanNPC extends Human implements BaseNPC {
 			$entity->kill();
 		}
 		return null;
+	}
+
+	public function kill() : void {
+		$this->active = false;
+		parent::kill();
+	}
+
+	public function getLoaderId(): int {
+		return $this->getId();
+	}
+
+	public function isLoaderActive(): bool {
+		return $this->active;
+	}
+
+	public function onChunkChanged(Chunk $chunk) {
+		// TODO: Implement onChunkChanged() method.
+	}
+
+	public function onChunkLoaded(Chunk $chunk) {
+		// TODO: Implement onChunkLoaded() method.
+	}
+
+	public function onBlockChanged(Vector3 $block) {
+		// TODO: Implement onBlockChanged() method.
+	}
+
+	public function onChunkPopulated(Chunk $chunk) {
+		// TODO: Implement onChunkPopulated() method.
+	}
+
+	public function onChunkUnloaded(Chunk $chunk) {
+		// TODO: Implement onChunkUnloaded() method.
 	}
 
 	//

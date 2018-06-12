@@ -29,7 +29,7 @@ use pocketmine\Player;
 class KillAuraDetector extends HumanNPC {
 
 	/** @var string */
-	private $targetUuid;
+	private $targetUuid = "";
 
 	/** @var Vector3 */
 	protected $offsetVector;
@@ -44,6 +44,7 @@ class KillAuraDetector extends HumanNPC {
 		parent::initEntity();
 		$this->setInvisible(true);
 		$this->setScale(0.2);
+		$this->offsetVector = new Vector3();
 	}
 
 	/**
@@ -60,7 +61,6 @@ class KillAuraDetector extends HumanNPC {
 	 */
 	public function setTarget(CorePlayer $player) {
 		$this->targetUuid = $player->getUniqueId()->toString();
-		$this->setSkin($player->getSkin());
 		$this->spawnTo($player);
 	}
 
@@ -85,7 +85,7 @@ class KillAuraDetector extends HumanNPC {
 	 *
 	 * @param EntityDamageEvent $source
 	 */
-	public function attack(EntityDamageEvent $source) {
+	public function attack(EntityDamageEvent $source) : void {
 		if($this->hasValidTarget()) {
 			$source->setCancelled();
 			if($source instanceof EntityDamageByEntityEvent) {

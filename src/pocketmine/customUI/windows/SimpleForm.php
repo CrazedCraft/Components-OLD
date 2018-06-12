@@ -74,8 +74,8 @@ class SimpleForm implements CustomUI {
 	 * @throws \Exception
 	 */
 	final public function handle($response, $player) {
-		if (isset($this->buttons[$response])) {
-			$this->buttons[$response]->handle(true, $player);
+		if (isset($this->buttons[(int)$response])) {
+			$this->buttons[(int)$response]->handle(true, $player);
 		} else {
 			error_log(__CLASS__ . '::' . __METHOD__ . " Button with index {$response} doesn't exists.");
 		}

@@ -298,16 +298,6 @@ class Main extends PluginBase {
 	}
 
 	/**
-	 * Stop loaded chunks from being unloaded
-	 */
-	public function freezeLoadedChunks() {
-		$chunks = $this->getServer()->getDefaultLevel()->getProvider()->getLoadedChunks();
-		foreach($chunks as $chunk) {
-			$chunk->allowUnload = false;
-		}
-	}
-
-	/**
 	 * Transfer all online players away from this server
 	 */
 	public function transferPlayers() {
@@ -358,7 +348,7 @@ class Main extends PluginBase {
 				continue;
 			}
 
-			$p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART")); // no available servers
+			$p->kick($this->getLanguageManager()->translateForPlayer($p, "SERVER_RESTART"), false); // no available servers
 		}
 	}
 

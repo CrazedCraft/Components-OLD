@@ -23,6 +23,7 @@ use core\util\traits\CorePluginReference;
 use core\Utils;
 use pocketmine\block\Block;
 use pocketmine\inventory\ContainerInventory;
+use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
